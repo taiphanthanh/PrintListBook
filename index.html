@@ -1,0 +1,4309 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phiếu Đăng Ký Mua Sách Giáo Khoa &amp; Sản Phẩm Giáo Dục (Lớp 1 - 12)</title>
+  <meta name="description" content="Ứng dụng quản lý, tùy biến, nhập Excel và in phiếu đăng ký mua sách giáo khoa chuẩn A4 và 2 bản A5 trên A4 cho 12 khối lớp.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+  
+  <!-- SheetJS Library for Excel Import (.xlsx, .xls, .csv) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    /* =========================================================
+       1. THEME VARIABLES & CORE RESET
+       ========================================================= */
+    :root {
+      --primary: #1d4ed8;
+      --primary-hover: #1e40af;
+      --primary-light: #eff6ff;
+      --primary-border: #bfdbfe;
+      --success: #15803d;
+      --success-hover: #166534;
+      --danger: #b91c1c;
+      --danger-hover: #991b1b;
+      --warning-bg: #fefce8;
+      --warning-border: #fde047;
+      --warning-text: #854d0e;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+
+      /* Administrative Document Print Colors */
+      --color-print-header: #d9d9d9;
+      --color-print-category: #ffff00;
+
+      --sidebar-left-width: 210px;
+      --sidebar-left-font-size: 0.88rem;
+      --sidebar-left-badge-size: 0.68rem;
+      --sidebar-left-title-size: 0.75rem;
+      --sidebar-left-item-padding: 0.5rem 0.75rem;
+      --sidebar-right-width: 310px;
+      --header-height: 56px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --shadow-paper: 0 12px 30px -4px rgba(0, 0, 0, 0.18), 0 4px 10px -2px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #cbd5e1;
+      color: var(--gray-800);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =========================================================
+       2. TOP APP BAR & NAVIGATION
+       ========================================================= */
+    .app-header {
+      height: var(--header-height);
+      background: #ffffff;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .app-brand svg {
+      width: 25px;
+      height: 25px;
+      color: var(--primary);
+    }
+
+    .badge-tag {
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      border: 1px solid var(--primary-border);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      font-size: 0.84rem;
+      font-weight: 600;
+      padding: 0.46rem 0.82rem;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      user-select: none;
+      line-height: 1.25;
+      white-space: nowrap;
+    }
+
+    .btn svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 1px 2px rgba(29, 78, 216, 0.2);
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      color: var(--gray-700);
+      border-color: var(--gray-300);
+    }
+    .btn-outline:hover {
+      background: var(--gray-50);
+      border-color: var(--gray-400);
+      color: var(--gray-900);
+    }
+
+    .btn-excel {
+      background: #f0fdf4;
+      color: #166534;
+      border-color: #bbf7d0;
+    }
+    .btn-excel:hover {
+      background: #dcfce7;
+      border-color: #86efac;
+      color: #14532d;
+    }
+
+    .btn-sm {
+      padding: 0.32rem 0.55rem;
+      font-size: 0.78rem;
+    }
+
+    .btn-icon {
+      padding: 0.42rem;
+      border-radius: 6px;
+    }
+
+    /* =========================================================
+       3. 3-COLUMN APP BODY (LEFT SIDEBAR + WORKSPACE + RIGHT SIDEBAR)
+       ========================================================= */
+    .app-body {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - var(--header-height));
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* LEFT SIDEBAR: 12 CLASSES LIST (FIXED) */
+    .app-sidebar-left {
+      width: var(--sidebar-left-width);
+      min-width: var(--sidebar-left-width);
+      max-width: var(--sidebar-left-width);
+      height: 100%;
+      max-height: 100%;
+      background: #ffffff;
+      border-right: none;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      z-index: 50;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .left-section-title {
+      font-size: var(--sidebar-left-title-size, 0.75rem);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gray-500);
+      padding: 0.85rem 0.85rem 0.45rem 0.85rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: font-size 0.05s ease;
+    }
+
+    .classes-nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 0.25rem 0.65rem;
+    }
+
+    .class-nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--sidebar-left-item-padding, 0.5rem 0.75rem);
+      border-radius: 6px;
+      font-size: var(--sidebar-left-font-size, 0.88rem);
+      font-weight: 500;
+      color: var(--gray-700);
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .class-nav-item:hover {
+      background: var(--gray-100);
+      color: var(--gray-900);
+    }
+
+    .class-nav-item.active {
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 700;
+      border-left: 3px solid var(--primary);
+      padding-left: calc(0.75rem - 3px);
+    }
+
+    .class-nav-badge {
+      font-size: var(--sidebar-left-badge-size, 0.68rem);
+      font-weight: 600;
+      padding: 0.12rem 0.38rem;
+      border-radius: 4px;
+      background: #e2e8f0;
+      color: var(--gray-600);
+      flex-shrink: 0;
+      margin-left: 0.4rem;
+      transition: font-size 0.05s ease;
+    }
+
+    .class-nav-item.active .class-nav-badge {
+      background: #dbeafe;
+      color: var(--primary);
+    }
+
+    /* DRAGGABLE RESIZER HANDLE FOR LEFT SIDEBAR */
+    .sidebar-resizer {
+      width: 6px;
+      background: var(--gray-200);
+      cursor: col-resize;
+      position: relative;
+      z-index: 55;
+      flex-shrink: 0;
+      transition: background 0.15s ease;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-resizer:hover,
+    .sidebar-resizer.is-dragging {
+      background: var(--primary);
+    }
+
+    .sidebar-resizer::after {
+      content: '';
+      width: 2px;
+      height: 26px;
+      border-radius: 2px;
+      background: var(--gray-400);
+      transition: background 0.15s ease, height 0.15s ease;
+    }
+
+    .sidebar-resizer:hover::after,
+    .sidebar-resizer.is-dragging::after {
+      background: #ffffff;
+      height: 42px;
+    }
+
+    .sidebar-resizer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -5px;
+      right: -5px;
+      z-index: 10;
+    }
+
+    .left-sidebar-actions {
+      margin-top: auto;
+      padding: 0.85rem;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      background: var(--gray-50);
+    }
+
+    /* RIGHT SIDEBAR: PRINT & DISPLAY SETTINGS (FIXED / COLLAPSIBLE) */
+    .app-sidebar-right {
+      width: var(--sidebar-right-width);
+      min-width: var(--sidebar-right-width);
+      height: 100%;
+      max-height: 100%;
+      background: #ffffff;
+      border-left: 1px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 50;
+      flex-shrink: 0;
+      transition: margin-right 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s;
+    }
+
+    .app-sidebar-right.collapsed {
+      margin-right: calc(-1 * var(--sidebar-right-width));
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .right-sidebar-header {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .right-sidebar-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gray-600);
+    }
+
+    .right-section {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--gray-700);
+    }
+
+    .form-select {
+      width: 100%;
+      padding: 0.45rem 0.65rem;
+      font-size: 0.84rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 6px;
+      background: #ffffff;
+      color: var(--gray-800);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-border);
+    }
+
+    .quick-stat-box {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      padding: 0.75rem;
+      display: grid;
+      grid-template-columns: 85px 1fr;
+      gap: 0.65rem;
+      align-items: center;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-value {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .stat-price-highlight {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #15803d;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--gray-500);
+    }
+
+    .sidebar-tips {
+      background: #fefce8;
+      border: 1px solid #fef08a;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.76rem;
+      color: #854d0e;
+      line-height: 1.45;
+    }
+
+    /* CENTER WORKSPACE: THE ONLY MOVABLE / SCROLLABLE CANVAS */
+    .app-workspace {
+      flex: 1;
+      height: 100%;
+      max-height: 100%;
+      overflow-y: auto;
+      overflow-x: auto;
+      padding: 1.25rem 1rem 4rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #cbd5e1;
+      position: relative;
+    }
+
+    .workspace-floating-bar {
+      position: sticky;
+      top: 0.5rem;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(203, 213, 225, 0.8);
+      border-radius: 50px;
+      padding: 0.35rem 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 1.25rem;
+      user-select: none;
+    }
+
+    .zoom-text {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gray-600);
+      min-width: 44px;
+      text-align: center;
+    }
+
+    /* =========================================================
+       4. PAPER SHEET CONTAINER (A4 SINGLE & A5 DUAL PREVIEW)
+       ========================================================= */
+    .paper-wrapper {
+      transform-origin: top center;
+      transition: transform 0.15s ease-out;
+      margin-bottom: 3rem;
+    }
+
+    .paper-stage {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* VERTICAL RULER (CÂY THƯỚC ĐO CHIỀU CAO TRANG A4) */
+    .paper-ruler-container {
+      width: 38px;
+      margin-right: -1px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-right: 1px solid #94a3b8;
+      border-radius: 4px 0 0 4px;
+      overflow: hidden;
+      user-select: none;
+      box-shadow: -2px 4px 6px -1px rgba(0, 0, 0, 0.06);
+      z-index: 10;
+      position: relative;
+    }
+
+    .paper-ruler-container.hidden {
+      display: none !important;
+    }
+
+    .ruler-svg {
+      display: block;
+    }
+
+    .paper-sheet-box {
+      position: relative;
+    }
+
+    /* PAGE OVERFLOW GUIDE LINE & BADGE (HIỂN THỊ KHI TRÀN KHUNG A4) */
+    .page-overflow-guide {
+      position: absolute;
+      left: 0;
+      right: 0;
+      z-index: 35;
+      pointer-events: none;
+    }
+
+    .overflow-guide-line {
+      width: 100%;
+      border-top: 2.5px dashed #dc2626;
+      filter: drop-shadow(0 1px 2px rgba(220, 38, 38, 0.4));
+    }
+
+    .overflow-guide-badge {
+      position: absolute;
+      right: 14px;
+      top: -14px;
+      background: #dc2626;
+      color: #ffffff;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: auto;
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.35);
+      border: 1px solid #b91c1c;
+      white-space: nowrap;
+    }
+
+    .overflow-guide-btn {
+      background: #ffffff;
+      color: #b91c1c;
+      border: none;
+      border-radius: 4px;
+      font-weight: 800;
+      font-size: 11px;
+      padding: 2px 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .overflow-guide-btn:hover {
+      background: #fef2f2;
+      color: #991b1b;
+      transform: scale(1.04);
+    }
+
+    .page-fit-pill {
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .page-fit-pill.fit-ok {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    .page-fit-pill.fit-overflow {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+      animation: pulseAlert 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseAlert {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      50% { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15); }
+    }
+
+    /* COMPACT DENSITY PRESET (TỰ ĐỘNG THU GỌN VỪA KHÍT 1 TRANG A4) */
+    .compact-density .a5-half-page {
+      padding: 1mm 5mm !important;
+    }
+    .compact-density .a5-half-page .phieu-header {
+      margin-bottom: 2px !important;
+    }
+    .compact-density .a5-half-page .phieu-top-row {
+      margin-bottom: 1px !important;
+    }
+    .compact-density .a5-half-page .school-name-box {
+      font-size: 10pt !important;
+    }
+    .compact-density .a5-half-page .main-title {
+      font-size: 11.5pt !important;
+    }
+    .compact-density .a5-half-page .sub-title {
+      font-size: 9.5pt !important;
+      margin-top: 1px !important;
+    }
+    .compact-density .a5-half-page .grade-class {
+      font-size: 9.5pt !important;
+      margin-top: 1px !important;
+    }
+    .compact-density .a5-half-page .phieu-table {
+      font-size: 9pt !important;
+      line-height: 1.15 !important;
+    }
+    .compact-density .a5-half-page .phieu-table th,
+    .compact-density .a5-half-page .phieu-table td {
+      padding: 1.6px 3px !important;
+    }
+    .compact-density .a5-half-page .phieu-table thead th {
+      font-size: 9pt !important;
+      padding: 2.5px 2px !important;
+    }
+    .compact-density .a5-half-page .row-category td {
+      font-size: 9pt !important;
+      padding: 2px 3px !important;
+    }
+    .compact-density .a5-half-page .row-total td {
+      font-size: 9pt !important;
+      padding: 2px 5px !important;
+    }
+    .compact-density .a5-half-page .phieu-footer {
+      margin-top: 4px !important;
+      font-size: 8.5pt !important;
+    }
+    .compact-density .a5-half-page .phieu-note {
+      margin-bottom: 3px !important;
+      font-size: 8pt !important;
+    }
+    .compact-density .a5-half-page .sign-title {
+      font-size: 9pt !important;
+    }
+    .compact-density .a5-half-page .sign-sub {
+      font-size: 7.5pt !important;
+    }
+    .compact-density .a5-half-page .sign-space {
+      height: 22px !important;
+    }
+
+    /* A4 Single sheet compact density */
+    .compact-density.a4-single-sheet {
+      padding: 8mm 12mm 8mm 12mm !important;
+    }
+    .compact-density.a4-single-sheet .phieu-header {
+      margin-bottom: 6px !important;
+    }
+    .compact-density.a4-single-sheet .phieu-table th,
+    .compact-density.a4-single-sheet .phieu-table td {
+      padding: 2.5px 6px !important;
+    }
+    .compact-density.a4-single-sheet .sign-space {
+      height: 30px !important;
+    }
+
+    /* A4 SINGLE SHEET (PORTRAIT) */
+    .a4-single-sheet {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 14mm 15mm 14mm 15mm;
+      margin: 0 auto;
+      background: #ffffff;
+      box-shadow: var(--shadow-paper);
+      box-sizing: border-box;
+      position: relative;
+      font-family: "Times New Roman", Times, serif;
+      color: #000000;
+      line-height: 1.35;
+    }
+
+    /* A5 DUAL SHEET (A4 LANDSCAPE: 2 x A5 SIDE BY SIDE) */
+    .a5-dual-sheet {
+      width: 297mm;
+      min-height: 210mm;
+      padding: 8mm 9mm 8mm 9mm;
+      margin: 0 auto;
+      background: #ffffff;
+      box-shadow: var(--shadow-paper);
+      box-sizing: border-box;
+      position: relative;
+      font-family: "Times New Roman", Times, serif;
+      color: #000000;
+      line-height: 1.25;
+      display: grid;
+      grid-template-columns: 1fr 14px 1fr;
+      gap: 0;
+    }
+
+    .a5-half-page {
+      padding: 2mm 6mm;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .a5-half-page .phieu-header { margin-bottom: 6px; }
+    .a5-half-page .phieu-top-row { margin-bottom: 4px; }
+    .a5-half-page .school-name-box { font-size: 10.5pt; }
+    .a5-half-page .main-title { font-size: 12.5pt; }
+    .a5-half-page .sub-title { font-size: 10.5pt; margin-top: 2px; }
+    .a5-half-page .grade-class { font-size: 10pt; margin-top: 2px; }
+    .a5-half-page .phieu-table { font-size: 9.5pt; line-height: 1.2; }
+    .a5-half-page .phieu-table th, .a5-half-page .phieu-table td { padding: 3px 4px; }
+    .a5-half-page .phieu-table thead th { font-size: 9.5pt; padding: 4px 2px; }
+    .a5-half-page .row-category td { font-size: 9.5pt; padding: 3px 4px; }
+    .a5-half-page .row-total td { font-size: 9.5pt; }
+    .a5-half-page .phieu-footer { margin-top: 8px; font-size: 9pt; }
+    .a5-half-page .phieu-note { margin-bottom: 8px; font-size: 8.5pt; }
+    .a5-half-page .sign-title { font-size: 9.5pt; }
+    .a5-half-page .sign-sub { font-size: 8pt; }
+    .a5-half-page .sign-space { height: 40px; }
+
+    /* Middle Cut Divider for A5 */
+    .a5-cut-divider {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      user-select: none;
+    }
+
+    .a5-cut-line {
+      width: 1px;
+      height: 100%;
+      border-left: 1.5px dashed #94a3b8;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+    }
+
+    
+
+    
+    /* SHEET TOP RIGHT CORNER SIGNATURE / BRANDING (CHỈ HIỆN KHI IN, ẨN TRÊN TRANG SỬA THEO YÊU CẦU 4) */
+    .sheet-top-right-corner {
+      display: none !important;
+    }
+
+    .corner-sig-text {
+      font-family: "Times New Roman", Times, serif;
+      font-size: 8.5pt;
+      font-weight: 700;
+      font-style: italic;
+      color: #1e293b;
+      padding: 1px 4px;
+      border-radius: 2px;
+      outline: none;
+      background: transparent;
+      display: inline-block;
+    }
+
+    .a4-single-sheet {
+      position: relative;
+    }
+
+    .a5-half-page {
+      position: relative;
+    }
+
+    .a5-half-page .corner-sig-text {
+      font-size: 7.5pt;
+    }
+
+    /* Table column widths for A5 half page */
+    .a5-half-page .col-stt {
+      width: 26px !important;
+    }
+    .a5-half-page .col-price {
+      width: 62px !important;
+    }
+    .a5-half-page .col-qty {
+      width: 36px !important;
+    }
+    .a5-half-page .col-subtotal {
+      width: 68px !important;
+      font-size: 7.8pt !important;
+    }
+    .a5-half-page .phieu-table {
+      table-layout: fixed !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    .a5-half-page .phieu-table thead th.col-subtotal {
+      font-size: 7.8pt !important;
+      white-space: nowrap !important;
+      padding: 4px 1px !important;
+    }
+    .a5-half-page .phieu-table thead th.col-qty {
+      font-size: 8.5pt !important;
+      white-space: nowrap !important;
+      padding: 4px 1px !important;
+    }
+
+    /* OWNER SIGNATURE IMAGE IN SIGN SPACE */
+    .owner-sig-img {
+      max-height: 38px;
+      max-width: 125px;
+      object-fit: contain;
+      display: block;
+      margin: 1px auto;
+    }
+
+    .a5-half-page .owner-sig-img {
+      max-height: 24px;
+      max-width: 85px;
+    }
+
+    .sign-space {
+      cursor: pointer;
+      min-height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sig-placeholder-hint {
+      font-size: 7pt;
+      color: #94a3b8;
+      font-style: italic;
+      user-select: none;
+    }
+
+    /* =========================================================
+       5. VIETNAMESE SCHOOL FORM LAYOUT & STYLING
+       ========================================================= */
+    .phieu-header {
+      margin-bottom: 12px;
+    }
+
+    .phieu-top-row {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .school-name-box {
+      font-size: 13pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      text-align: left;
+      line-height: 1.25;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+
+    .phieu-title-center {
+      text-align: center;
+      margin: 6px 0 10px 0;
+    }
+
+    .main-title {
+      font-size: 15.5pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      line-height: 1.3;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+
+    .sub-title {
+      font-size: 13pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-top: 3px;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+
+    .grade-class {
+      font-size: 12pt;
+      font-weight: bold;
+      margin-top: 3px;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+
+    /* TABLE STYLES */
+    .phieu-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 11pt;
+      line-height: 1.25;
+    }
+
+    .phieu-table th,
+    .phieu-table td {
+      border: 1px solid #000000;
+      padding: 5px 6px;
+      vertical-align: middle;
+      position: relative;
+    }
+
+    /* Column Widths */
+    .col-stt {
+      width: 40px;
+      text-align: center;
+    }
+
+    .col-name {
+      text-align: left;
+    }
+
+    .col-price {
+      width: 90px;
+      text-align: right;
+    }
+
+    .col-qty {
+      width: 50px;
+      text-align: center;
+    }
+
+    .col-subtotal {
+      width: 100px;
+      text-align: right;
+    }
+
+    /* Table Header Row */
+    .phieu-table thead tr {
+      background-color: var(--color-print-header) !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    .phieu-table thead th {
+      font-size: 10.5pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 5px 3px;
+      color: #000000;
+      white-space: nowrap;
+    }
+
+    .phieu-table thead th.col-subtotal {
+      font-size: 10pt;
+      padding: 5px 2px;
+    }
+
+    .phieu-table thead th.col-qty {
+      font-size: 10.5pt;
+      padding: 5px 2px;
+    }
+
+    /* Category Row */
+    .row-category {
+      background-color: var(--color-print-category) !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    .row-category td {
+      font-size: 11.5pt;
+      font-weight: bold;
+      color: #000000;
+      padding: 5px 6px;
+    }
+
+    .cat-code-cell {
+      text-align: center;
+    }
+
+    .cat-name-cell {
+      text-align: left;
+    }
+
+    /* Item Row */
+    .row-item td.item-stt {
+      text-align: center;
+    }
+
+    .row-item td.item-name {
+      text-align: left;
+    }
+
+    .row-item td.item-price {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row-item td.item-qty {
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row-item td.item-subtotal {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Editable cell states */
+    .cell-editable-text {
+      outline: none;
+      cursor: text;
+      min-height: 18px;
+      padding: 1px 2px;
+      border-radius: 2px;
+      transition: background 0.15s;
+    }
+
+    .cell-editable-text:hover {
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    .cell-editable-text:focus {
+      background: #eff6ff !important;
+      box-shadow: inset 0 0 0 1.5px #2563eb;
+    }
+
+    .school-name-box:hover,
+    .main-title:hover,
+    .sub-title:hover,
+    .grade-class:hover,
+    .phieu-note:hover,
+    .sign-date:hover {
+      background: #f1f5f9;
+      outline: 1px dashed #3b82f6;
+    }
+
+    .school-name-box:focus,
+    .main-title:focus,
+    .sub-title:focus,
+    .grade-class:focus,
+    .phieu-note:focus,
+    .sign-date:focus {
+      background: #eff6ff;
+      outline: 1.5px solid #2563eb;
+    }
+
+    /* Total row (Merged into single total cell!) */
+    .row-total td {
+      font-weight: bold;
+      font-size: 11pt;
+    }
+
+    .table-total-value {
+      font-size: 12pt !important;
+      font-weight: bold !important;
+    }
+
+    /* Footer Note and Signatures */
+    .phieu-footer {
+      margin-top: 14px;
+      font-size: 11pt;
+    }
+
+    .phieu-note {
+      font-style: italic;
+      margin-bottom: 12px;
+      line-height: 1.35;
+      padding: 2px 4px;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .phieu-sign-row {
+      display: flex;
+      justify-content: flex-end;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .phieu-sign-box {
+      width: 250px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .sign-date {
+      font-style: italic;
+      outline: none;
+      padding: 2px 4px;
+    }
+
+    .sign-title {
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 11pt;
+    }
+
+    .sign-sub {
+      font-size: 9.5pt;
+      font-style: italic;
+    }
+
+    .sign-space {
+      height: 55px;
+    }
+
+    /* =========================================================
+       6. INTERACTIVE HOVER ACTIONS & CONTROLS (SCREEN ONLY)
+       ========================================================= */
+    .row-action-handle {
+      position: absolute;
+      right: -36px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: #ffffff;
+      border: 1px solid var(--gray-300);
+      border-radius: 4px;
+      box-shadow: var(--shadow-md);
+      padding: 2px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+      z-index: 25;
+      user-select: none;
+    }
+
+    tr:hover .row-action-handle {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .handle-btn {
+      width: 22px;
+      height: 22px;
+      border: none;
+      background: transparent;
+      color: var(--gray-600);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all 0.1s;
+    }
+
+    .handle-btn:hover {
+      background: var(--gray-100);
+      color: var(--gray-900);
+    }
+
+    .handle-btn.danger:hover {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .add-row-in-cat-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      width: 100%;
+      padding: 4px;
+      font-size: 0.8rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: transparent;
+      border: 1px dashed #94a3b8;
+      border-radius: 4px;
+      color: var(--gray-600);
+      cursor: pointer;
+      margin: 2px 0;
+      transition: all 0.15s;
+    }
+
+    .add-row-in-cat-btn:hover {
+      background: #f1f5f9;
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .table-bottom-actions {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 14px;
+    }
+
+    /* =========================================================
+       7. TOAST NOTIFICATIONS & MODALS
+       ========================================================= */
+    .toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      background: var(--gray-900);
+      color: #ffffff;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      animation: slideInRight 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 380px;
+    }
+
+    .toast.success { border-left: 4px solid #22c55e; }
+    .toast.error { border-left: 4px solid #ef4444; }
+    .toast.info { border-left: 4px solid #3b82f6; }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* =========================================================
+       MODAL DIALOG (GHÉP XEN KẼ CÁC KHỐI LỚP TRÊN KHỔ A5)
+       ========================================================= */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      animation: fadeInOverlay 0.15s ease-out;
+    }
+
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-dialog {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 520px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: slideUpModal 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUpModal {
+      from { transform: translateY(16px) scale(0.97); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+    }
+
+    .modal-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.25rem;
+      color: var(--gray-400);
+      cursor: pointer;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      line-height: 1;
+      transition: all 0.15s ease;
+    }
+
+    .modal-close:hover {
+      background: var(--gray-200);
+      color: var(--gray-800);
+    }
+
+    .modal-body {
+      padding: 1.25rem;
+      font-size: 0.88rem;
+      color: var(--gray-700);
+    }
+
+    .modal-footer {
+      padding: 0.85rem 1.25rem;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+    }
+
+    .quick-pair-btn {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.78rem;
+      border-radius: 6px;
+      border: 1px solid var(--gray-300);
+      background: #ffffff;
+      color: var(--gray-700);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .quick-pair-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .quick-pair-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    /* =========================================================
+       8. PRINT OPTIMIZATION (@MEDIA PRINT)
+       ========================================================= */
+    @media print {
+      /* Hide all UI elements, toolbars, sidebars, action buttons */
+      .app-header,
+      .app-sidebar-left,
+      .sidebar-resizer,
+      .app-sidebar-right,
+      .workspace-floating-bar,
+      .row-action-handle,
+      .add-row-in-cat-btn,
+      .table-bottom-actions,
+      .toast-container,
+      .no-print {
+        display: none !important;
+      }
+
+      html, body {
+        background: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+      }
+
+      .app-body {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+
+      .app-workspace {
+        padding: 0 !important;
+        background: #ffffff !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        display: block !important;
+      }
+
+      .paper-wrapper {
+        transform: none !important;
+        margin-bottom: 0 !important;
+      }
+
+      .paper-stage,
+      .paper-sheet-box {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      /* A4 Single: Căn giữa, padding an toàn, không bị tràn hay cắt chữ */
+      .a4-single-sheet {
+        width: 210mm !important;
+        max-width: 210mm !important;
+        min-height: 297mm !important;
+        height: auto !important;
+        padding: 8mm 12mm !important;
+        margin: 0 auto !important;
+        box-sizing: border-box !important;
+        box-shadow: none !important;
+        border: none !important;
+        overflow: visible !important;
+        display: block !important;
+      }
+
+      /* A5 Dual: Sử dụng table layout chuẩn in ấn, triệt tiêu flex/grid clipping */
+      .a5-dual-sheet {
+        width: 297mm !important;
+        max-width: 297mm !important;
+        min-height: 210mm !important;
+        height: auto !important;
+        padding: 4mm 6mm !important;
+        margin: 0 auto !important;
+        box-sizing: border-box !important;
+        box-shadow: none !important;
+        border: none !important;
+        overflow: visible !important;
+        display: table !important;
+        table-layout: fixed !important;
+      }
+
+      /* Tối ưu mật độ in ấn khổ A5 để vừa khít 100% trong 1 tờ giấy duy nhất */
+      .a5-half-page .phieu-header {
+        margin-bottom: 2px !important;
+      }
+      .a5-half-page .phieu-top-row {
+        margin-bottom: 1px !important;
+      }
+      .a5-half-page .school-name-box {
+        font-size: 9.5pt !important;
+      }
+      .a5-half-page .main-title {
+        font-size: 11pt !important;
+      }
+      .a5-half-page .sub-title {
+        font-size: 9pt !important;
+        margin-top: 1px !important;
+      }
+      .a5-half-page .grade-class {
+        font-size: 9pt !important;
+        margin-top: 1px !important;
+      }
+      .a5-half-page .phieu-table {
+        font-size: 8.5pt !important;
+        line-height: 1.15 !important;
+      }
+      .a5-half-page .phieu-table th,
+      .a5-half-page .phieu-table td {
+        padding: 1.6px 2.5px !important;
+      }
+      .a5-half-page .row-category td {
+        font-size: 8.5pt !important;
+        padding: 1.8px 3px !important;
+      }
+      .a5-half-page .row-total td {
+        font-size: 8.8pt !important;
+        padding: 2px 4px !important;
+      }
+      .a5-half-page .phieu-footer {
+        margin-top: 3px !important;
+        font-size: 8pt !important;
+      }
+      .a5-half-page .phieu-note {
+        margin-bottom: 2px !important;
+        font-size: 7.5pt !important;
+      }
+      .a5-half-page .sign-title {
+        font-size: 8.8pt !important;
+      }
+      .a5-half-page .sign-sub {
+        font-size: 7.2pt !important;
+      }
+      .a5-half-page .sign-space {
+        height: 20px !important;
+      }
+
+      .a5-half-page {
+        display: table-cell !important;
+        width: 48.5% !important;
+        vertical-align: top !important;
+        padding: 1.5mm 4mm !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+      }
+
+      .a5-cut-divider {
+        display: table-cell !important;
+        width: 3% !important;
+        vertical-align: top !important;
+        position: relative !important;
+        padding: 0 !important;
+      }
+
+      .a5-cut-line {
+        height: 100% !important;
+        border-left: 1px dashed #94a3b8 !important;
+      }
+
+      /* Exact color reproduction for print */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      /* Sheet top-right corner signature only visible when printing */
+      .sheet-top-right-corner {
+        display: block !important;
+        position: absolute !important;
+        top: 4mm !important;
+        right: 6mm !important;
+        text-align: right !important;
+        z-index: 5 !important;
+      }
+
+      .a5-half-page .sheet-top-right-corner {
+        top: 1.5mm !important;
+        right: 3mm !important;
+      }
+
+      .phieu-table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+        page-break-inside: auto !important;
+        box-sizing: border-box !important;
+      }
+
+      .phieu-table th,
+      .phieu-table td {
+        box-sizing: border-box !important;
+        overflow: hidden;
+      }
+
+      .phieu-table th.col-subtotal {
+        font-size: 9.5pt !important;
+        white-space: nowrap !important;
+      }
+
+      .phieu-table th.col-qty {
+        font-size: 10pt !important;
+        white-space: nowrap !important;
+      }
+
+      .phieu-table thead {
+        display: table-header-group !important;
+      }
+
+      .phieu-table thead tr {
+        background-color: #d9d9d9 !important;
+      }
+
+      .row-category {
+        background-color: #ffff00 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+
+      .phieu-table tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      .phieu-table th,
+      .phieu-table td {
+        border: 1px solid #000000 !important;
+        color: #000000 !important;
+      }
+
+      .phieu-footer {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      .cell-editable-text,
+      [contenteditable="true"] {
+        outline: none !important;
+        background: transparent !important;
+      }
+    }
+  </style>
+
+  <!-- Dynamic Page Style for A4 Portrait vs A5 Dual Landscape (margin: 0 triệt tiêu hoàn toàn header/footer trình duyệt) -->
+  <style id="dynamicPrintPageStyle">
+    @page {
+      size: A4 portrait;
+      margin: 0 !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================
+       APP HEADER
+       ========================================================= -->
+  <header class="app-header">
+    <div style="display: flex; align-items: center; gap: 0.85rem;">
+      <a href="#" class="app-brand" title="Trình in phiếu đăng ký sách chuẩn A4 & A5 cho 12 khối lớp">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+        <span>PrintListBook</span>
+        <span class="badge-tag">Lớp 1 - 12</span>
+      </a>
+
+      <!-- ĐỊNH DẠNG BẢN IN ĐƯỢC ĐƯA LÊN HEADER THEO YÊU CẦU 5 -->
+      <div class="header-format-pill" style="display: flex; align-items: center; background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 2px 8px; margin-left: 10px;">
+        <span style="font-size: 0.76rem; font-weight: 700; color: #475569; margin-right: 5px; text-transform: uppercase;">Định dạng:</span>
+        <select id="headerLayoutModeSelect" class="form-select" style="padding: 2px 6px; font-size: 0.82rem; font-weight: 700; color: var(--primary); border: none; background: transparent; cursor: pointer; outline: none;">
+          <option value="a4-single">📄 Khổ A4 đơn (1 phiếu / trang A4)</option>
+          <option value="a5-double">📄📄 Khổ A5 tiết kiệm (2 phiếu / trang A4)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- 1. Import Excel (.xlsx, .xls, .csv) -->
+      <label class="btn btn-excel" title="Nhập danh mục sách từ file Excel (.xlsx, .xls, .csv)" style="cursor: pointer; margin: 0;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="8" y1="13" x2="16" y2="13"></line>
+          <line x1="8" y1="17" x2="16" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        <span>Nhập Excel</span>
+        <input type="file" id="importExcelInput" accept=".xlsx, .xls, .csv" style="display: none;">
+      </label>
+
+      <!-- Backup JSON -->
+      <button id="btnExportJson" class="btn btn-outline" title="Sao lưu dữ liệu ra file JSON">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Sao lưu</span>
+      </button>
+
+      <!-- Restore JSON -->
+      <label class="btn btn-outline" title="Khôi phục dữ liệu từ file JSON" style="cursor: pointer; margin: 0;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <span>Khôi phục</span>
+        <input type="file" id="importJsonInput" accept=".json" style="display: none;">
+      </label>
+
+      <!-- Toggle Right Settings Sidebar -->
+      <button id="btnToggleRightSidebar" class="btn btn-outline" title="Ẩn/Hiện bảng tùy chọn bản in bên phải">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span>Tùy chọn in</span>
+      </button>
+
+      <!-- Primary Print Button -->
+      <button id="btnPrint" class="btn btn-primary" title="In phiếu ra máy in hoặc Lưu thành file PDF (Ctrl+P)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9"></polyline>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+          <rect x="6" y="14" width="12" height="8"></rect>
+        </svg>
+        <span>In Phiếu / Lưu PDF</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       APP BODY: LEFT SIDEBAR + WORKSPACE + RIGHT SIDEBAR
+       ========================================================= -->
+  <div class="app-body">
+    
+    <!-- 1. LEFT SIDEBAR: LIST OF 12 CLASSES (LỚP 1 ĐẾN LỚP 12) -->
+    <aside class="app-sidebar-left" id="appSidebarLeft">
+      <div class="left-section-title" title="Kéo mép phải để điều chỉnh độ rộng và cỡ chữ">Danh sách 12 khối lớp</div>
+      
+      <div id="classesNavList" class="classes-nav-list">
+        <!-- Rendered dynamically (Lớp 1 -> Lớp 12) -->
+      </div>
+    </aside>
+
+    <!-- Draggable Resizer Handle between Left Sidebar and Workspace -->
+    <div id="sidebarLeftResizer" class="sidebar-resizer no-print" title="Kéo sang phải để phóng to chữ, kéo sang trái để thu nhỏ (Nhấp đúp để đặt lại chuẩn)"></div>
+
+    <!-- 2. CENTER WORKSPACE: PAPER SHEET PREVIEW (A4 SINGLE OR A5 DUAL) -->
+    <main class="app-workspace" id="appWorkspace">
+      
+      <!-- Floating Toolbar for Zoom & Standard Template Actions -->
+      <div class="workspace-floating-bar no-print">
+        <button id="btnZoomOut" class="btn btn-outline btn-icon" title="Thu nhỏ">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="8" y1="11" x2="14" y2="11"></line>
+          </svg>
+        </button>
+        <span id="zoomLevelDisplay" class="zoom-text">100%</span>
+        <button id="btnZoomIn" class="btn btn-outline btn-icon" title="Phóng to">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="11" y1="8" x2="11" y2="14"></line>
+            <line x1="8" y1="11" x2="14" y2="11"></line>
+          </svg>
+        </button>
+        <button id="btnZoomReset" class="btn btn-outline btn-sm" title="Khôi phục zoom 100%">100%</button>
+        
+        <div style="height: 16px; width: 1px; background: var(--gray-300);"></div>
+
+        <!-- 2 Standard Template Buttons placed right here on the Floating Bar! -->
+        <button id="btnSetCurrentClassStandard" class="btn btn-sm btn-outline" style="color: var(--warning-text); background: var(--warning-bg); border-color: var(--warning-border);" title="Lưu mẫu hiện tại làm mẫu chuẩn riêng cho lớp này">
+          ⭐ Lưu Mẫu Chuẩn Lớp 9
+        </button>
+        <button id="btnResetCurrentClassStandard" class="btn btn-sm btn-outline" title="Nếu nhập sai, bấm vào để khôi phục về mẫu chuẩn của lớp này">
+          🔄 Về Mẫu Chuẩn Lớp 9
+        </button>
+
+        <div style="height: 16px; width: 1px; background: var(--gray-300);"></div>
+
+                <!-- Nút Ghép Xen Kẽ Các Lớp (Tự động chuyển sang A5) -->
+        <button id="btnOpenInterleaveModal" class="btn btn-sm btn-outline" style="color: #4338ca; background: #eef2ff; border-color: #c7d2fe; font-weight: 700; display: flex; align-items: center; gap: 5px;" title="Chèn ghép xen kẽ 2 lớp khác nhau trên cùng 1 trang in A5 (Tự động chuyển về dạng A5)">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 3 21 3 21 8"></polyline>
+            <line x1="4" y1="20" x2="21" y2="3"></line>
+            <polyline points="21 16 21 21 16 21"></polyline>
+            <line x1="15" y1="15" x2="21" y2="21"></line>
+            <line x1="4" y1="4" x2="9" y2="9"></line>
+          </svg>
+          🔀 Ghép xen kẽ lớp
+        </button>
+
+        <div style="height: 16px; width: 1px; background: var(--gray-300);"></div>
+
+        <!-- Nút tự động điền 1 vào ô trống đặt ngay trên thanh thu phóng -->
+        <button id="btnFloatingFillQty1" class="btn btn-sm btn-outline" style="color: #15803d; background: #f0fdf4; border-color: #86efac; font-weight: 700; display: flex; align-items: center; gap: 5px;" title="Tự động điền số lượng 1 vào các ô sách còn trống (giữ nguyên các ô đã có số)">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          ⚡ Điền 1 ô trống
+        </button>
+
+        <div style="height: 16px; width: 1px; background: var(--gray-300);"></div>
+        <span id="layoutModeIndicator" style="display: none;"></span>
+
+        <!-- Trạng thái tràn trang và nút co vừa trang -->
+        <div id="pageOverflowToolbarPill" class="page-overflow-toolbar-pill" style="display: flex; align-items: center; gap: 6px;">
+        </div>
+      </div>
+
+      <!-- PAPER WRAPPER -->
+      <div class="paper-wrapper" id="paperWrapper">
+        <div class="paper-stage">
+          <!-- Cây thước đo chiều cao trang A4 (Vertical Ruler) -->
+          <div class="paper-ruler-container no-print" id="paperRulerContainer" title="Cây thước đo chiều cao A4 (cm). Vạch đỏ hiển thị giới hạn 1 trang A4.">
+            <svg id="rulerSvg" class="ruler-svg" width="38"></svg>
+          </div>
+          <!-- Vùng giấy A4 và vạch báo tràn trang -->
+          <div class="paper-sheet-box">
+            <div id="paperContainer">
+              <!-- Injected via renderSheet() -->
+            </div>
+            <!-- Vạch chỉ giới hạn khi tràn trang A4 -->
+            <div id="pageOverflowGuide" class="page-overflow-guide no-print" style="display: none;">
+              <div class="overflow-guide-line"></div>
+              <div class="overflow-guide-badge">
+                <span class="overflow-guide-text">⚠️ GIỚI HẠN 1 TRANG A4</span>
+                <button class="overflow-guide-btn" onclick="window.appHandlers.toggleAutoFit()">
+                  ⚡ Co vừa 1 trang
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- 3. RIGHT SIDEBAR: PRINT & DISPLAY SETTINGS (COLLAPSIBLE / CÓ THỂ ẨN TẮT) -->
+    <aside class="app-sidebar-right" id="appSidebarRight">
+      
+      <div class="right-sidebar-header">
+        <span class="right-sidebar-title">Tùy chọn bản in</span>
+        <button id="btnCloseRightSidebar" class="btn-icon btn-outline btn-sm" title="Ẩn bảng tùy chọn">✕</button>
+      </div>
+
+      <!-- Paper Size & Layout Mode -->
+      <div class="right-section">
+        <div class="control-group">
+          <label class="control-label">Khổ in &amp; Bố cục:</label>
+          <select id="printLayoutModeSelect" class="form-select">
+            <option value="a4-single">📄 Khổ A4 đơn (1 phiếu / 1 trang A4)</option>
+            <option value="a5-double">📄📄 Khổ A5 tiết kiệm (2 phiếu trên 1 trang A4)</option>
+          </select>
+        </div>
+
+
+      </div>
+
+            <!-- Signature / Stamp Upload Section -->
+      <div class="right-section">
+        <h4 class="right-section-title">CHỮ KÝ / CON DẤU CHỦ CỬA HÀNG</h4>
+        <div class="control-group">
+          <input type="file" id="ownerSigUploadInput" accept="image/*" style="display: none;">
+          <div style="display: flex; gap: 6px;">
+            <button id="btnUploadSigImg" class="btn btn-xs btn-outline" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-weight: 600;">
+              📷 Tải ảnh chữ ký / con dấu
+            </button>
+            <button id="btnRemoveSigImg" class="btn btn-xs btn-outline danger" style="display: none;" title="Xóa ảnh chữ ký">
+              🗑️ Xóa
+            </button>
+          </div>
+          <div id="sigImgPreviewBox" style="margin-top: 6px; display: none; text-align: center; background: #f8fafc; border: 1px dashed var(--gray-300); border-radius: 6px; padding: 4px;">
+            <img id="sigImgPreview" src="" style="max-height: 40px; max-width: 130px; object-fit: contain;">
+          </div>
+          <div style="font-size: 0.72rem; color: var(--gray-500); margin-top: 4px; line-height: 1.3;">
+            Ảnh con dấu hoặc chữ ký sẽ tự động hiển thị tại ô ký tên của chủ cửa hàng trên toàn bộ các phiếu.
+          </div>
+        </div>
+      </div>
+
+      <!-- Other Print Settings -->
+      <div class="right-section">
+        <div class="control-group">
+          <label class="control-label">Đánh số thứ tự (STT):</label>
+          <select id="sttNumberingMode" class="form-select">
+            <option value="continuous">Đánh số liên tục cả bảng (1, 2, 3...)</option>
+            <option value="per-category">Đánh số lại theo từng nhóm (1..n)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Chế độ in cột "Số lượng":</label>
+          <select id="quantityPrintMode" class="form-select">
+            <option value="blank">Phiếu trắng (để học sinh tự điền)</option>
+            <option value="as-is">Theo số lượng đã nhập trong bảng</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Mật độ dòng (Chống tràn trang 2):</label>
+          <select id="selectTableDensity" class="form-select">
+            <option value="standard">Chuẩn (Mặc định)</option>
+            <option value="compact">⚡ Thu gọn (Để vừa khít 1 trang A4)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.82rem; cursor: pointer;">
+            <input type="checkbox" id="chkShowRuler" checked>
+            <span>Hiển thị <b>Cây thước đo chiều cao A4</b></span>
+          </label>
+        </div>
+
+        <div class="control-group">
+          <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.82rem; cursor: pointer;">
+            <input type="checkbox" id="chkShowTotalRow" checked>
+            <span>Hiển thị dòng <b>Tổng cộng số tiền</b></span>
+          </label>
+        </div>
+
+        <div class="control-group">
+          <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.82rem; cursor: pointer;">
+            <input type="checkbox" id="chkShowSubtotalCol">
+            <span>Hiển thị cột <b>Thành tiền</b> (Đơn giá × SL)</span>
+          </label>
+        </div>
+
+        <div class="control-group">
+          <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.82rem; cursor: pointer;">
+            <input type="checkbox" id="chkShowSignSection" checked>
+            <span>Hiển thị phần chữ ký</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="right-section">
+        <span class="control-label" style="display: block; margin-bottom: 0.5rem;">Thống kê phiếu</span>
+        <div class="quick-stat-box">
+          <div class="stat-item">
+            <span id="statTotalItems" class="stat-value">0</span>
+            <span class="stat-label">Tổng đầu sách</span>
+          </div>
+          <div class="stat-item">
+            <span id="statTotalAmount" class="stat-value stat-price-highlight">0 đ</span>
+            <span id="statTotalAmountLabel" class="stat-label">Tổng giá trị</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Print Advice -->
+      <div class="right-section" style="margin-top: auto;">
+        <div class="sidebar-tips">
+          <strong>💡 Mẹo in chuẩn màu &amp; tiết kiệm:</strong>
+          - Chọn <b>"Khổ A5 tiết kiệm"</b> để in 2 phiếu trên 1 tờ A4 (giảm 50% giấy in).<br>
+          - Trong hộp thoại in (Ctrl+P), tích chọn <b>"Đồ họa nền" (Background graphics)</b> để giữ màu xám và màu vàng.
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- Interleave Classes Modal Dialog -->
+  <div id="interleaveModal" class="modal-overlay no-print" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <span>🔀</span> Ghép Xen Kẽ Các Khối Lớp Trên Khổ A5
+        </h3>
+        <button class="modal-close" id="btnCloseInterleaveModal" title="Đóng">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.82rem; color: var(--gray-600); margin-bottom: 1.1rem; line-height: 1.45;">
+          Chức năng cho phép in <b>2 khối lớp khác nhau</b> (ví dụ: Lớp 1 và Lớp 2) nằm cạnh nhau trên cùng 1 trang A4 ngang. Khi in ra cắt đôi, bạn sẽ có phiếu của 2 lớp riêng biệt, siêu tiết kiệm giấy!
+        </p>
+
+        <!-- Auto A5 Notice Banner -->
+        <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 0.65rem 0.85rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #3730a3;">
+          <span style="font-size: 1.1rem;">⚡</span>
+          <span>Định dạng sẽ <b>tự động chuyển sang khổ A5 (2 phiếu / trang A4)</b> ngay khi áp dụng.</span>
+        </div>
+
+        <!-- 2 Half Selectors -->
+        <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.75rem; align-items: center; margin-bottom: 1.25rem;">
+          <div style="background: #f8fafc; border: 1px solid var(--gray-200); border-radius: 8px; padding: 0.75rem;">
+            <label style="font-size: 0.76rem; font-weight: 700; color: var(--gray-600); text-transform: uppercase; display: block; margin-bottom: 0.35rem;">
+              📄 Phiếu Nửa TRÁI (A5)
+            </label>
+            <select id="selectInterleaveLeft" class="form-select" style="font-weight: 700; color: var(--primary);">
+              <!-- Rendered dynamically -->
+            </select>
+          </div>
+
+          <button id="btnSwapInterleave" class="btn btn-outline btn-icon" title="Đổi bên Trái ⇄ Phải" style="margin-top: 0.5rem; height: 36px; width: 36px; border-radius: 50%;">
+            ⇄
+          </button>
+
+          <div style="background: #f8fafc; border: 1px solid var(--gray-200); border-radius: 8px; padding: 0.75rem;">
+            <label style="font-size: 0.76rem; font-weight: 700; color: var(--gray-600); text-transform: uppercase; display: block; margin-bottom: 0.35rem;">
+              📄 Phiếu Nửa PHẢI (A5)
+            </label>
+            <select id="selectInterleaveRight" class="form-select" style="font-weight: 700; color: #4338ca;">
+              <!-- Rendered dynamically -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Quick Pair Buttons -->
+        <div>
+          <label style="font-size: 0.78rem; font-weight: 700; color: var(--gray-600); display: block; margin-bottom: 0.45rem;">
+            ⚡ Chọn nhanh cặp lớp ghép đôi:
+          </label>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;" id="quickPairButtonsContainer">
+            <button class="quick-pair-btn" data-left="lop-1" data-right="lop-2">Lớp 1 + 2</button>
+            <button class="quick-pair-btn" data-left="lop-3" data-right="lop-4">Lớp 3 + 4</button>
+            <button class="quick-pair-btn" data-left="lop-5" data-right="lop-6">Lớp 5 + 6</button>
+            <button class="quick-pair-btn" data-left="lop-7" data-right="lop-8">Lớp 7 + 8</button>
+            <button class="quick-pair-btn" data-left="lop-9" data-right="lop-10">Lớp 9 + 10</button>
+            <button class="quick-pair-btn" data-left="lop-11" data-right="lop-12">Lớp 11 + 12</button>
+            <button class="quick-pair-btn" data-left="same" data-right="same" style="color: #15803d; border-color: #86efac; background: #f0fdf4;">
+              🔄 Nhân đôi cùng lớp
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" id="btnCancelInterleaveModal">Đóng</button>
+        <button class="btn btn-primary btn-sm" id="btnApplyInterleave">
+          ✓ Áp dụng ghép &amp; Chuyển sang A5
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- =========================================================
+       JAVASCRIPT APPLICATION LOGIC
+       ========================================================= -->
+  <script>
+    (function () {
+      'use strict';
+
+      // --- FACTORY PRESETS FOR ALL 12 CLASSES ---
+      function generateDefaultTemplates() {
+        return {
+          'lop-1': {
+            id: 'lop-1',
+            name: 'Lớp 1',
+            schoolName: 'TRƯỜNG TIỂU HỌC PHÚ DIỄN',
+            mainTitle: 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC',
+            subTitle: 'PHỤC VỤ LỚP 1 - NĂM HỌC 2024-2025',
+            gradeClass: 'Lớp: 1A......',
+            note: '* Ghi chú: Phụ huynh đánh dấu (X) hoặc ghi số lượng vào các đầu sách cần đăng ký và gửi lại GVCN.',
+            signDate: 'Ngày ...... tháng ...... năm 20...',
+            showTotalRow: true,
+            showSubtotalCol: false,
+            showSignSection: true,
+            numberingMode: 'continuous',
+            quantityPrintMode: 'as-is',
+            categories: [
+              {
+                id: 'cat-1-1',
+                code: 'I',
+                name: 'SÁCH GIÁO KHOA CHƯƠNG TRÌNH MỚI',
+                items: [
+                  { id: 'it-1-1', name: 'Tiếng Việt 1 tập 1', price: 14000, quantity: '' },
+                  { id: 'it-1-2', name: 'Tiếng Việt 1 tập 2', price: 14000, quantity: '' },
+                  { id: 'it-1-3', name: 'Toán 1', price: 15000, quantity: '' },
+                  { id: 'it-1-4', name: 'Tự nhiên và Xã hội 1', price: 13000, quantity: '' },
+                  { id: 'it-1-5', name: 'Đạo đức 1', price: 9000, quantity: '' },
+                  { id: 'it-1-6', name: 'Âm nhạc 1', price: 8000, quantity: '' },
+                  { id: 'it-1-7', name: 'Mĩ thuật 1', price: 8000, quantity: '' },
+                  { id: 'it-1-8', name: 'Giáo dục thể chất 1', price: 9000, quantity: '' },
+                  { id: 'it-1-9', name: 'Hoạt động trải nghiệm 1', price: 10000, quantity: '' },
+                  { id: 'it-1-10', name: 'Tiếng Anh 1', price: 45000, quantity: '' }
+                ]
+              },
+              {
+                id: 'cat-1-2',
+                code: 'II',
+                name: 'VỞ BÀI TẬP VÀ ĐỒ DÙNG HỌC TẬP',
+                items: [
+                  { id: 'it-1-11', name: 'Vở bài tập Tiếng Việt 1 tập 1', price: 8500, quantity: '' },
+                  { id: 'it-1-12', name: 'Vở bài tập Tiếng Việt 1 tập 2', price: 8500, quantity: '' },
+                  { id: 'it-1-13', name: 'Vở bài tập Toán 1', price: 9000, quantity: '' },
+                  { id: 'it-1-14', name: 'Vở bài tập Tự nhiên và Xã hội 1', price: 7000, quantity: '' }
+                ]
+              }
+            ]
+          },
+          'lop-2': {
+            id: 'lop-2',
+            name: 'Lớp 2',
+            schoolName: 'TRƯỜNG TIỂU HỌC PHÚ DIỄN',
+            mainTitle: 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC',
+            subTitle: 'PHỤC VỤ LỚP 2 - NĂM HỌC 2024-2025',
+            gradeClass: 'Lớp: 2A......',
+            note: '* Ghi chú: Phụ huynh ghi số lượng vào các đầu sách cần đăng ký và gửi lại GVCN.',
+            signDate: 'Ngày ...... tháng ...... năm 20...',
+            showTotalRow: true,
+            showSubtotalCol: false,
+            showSignSection: true,
+            numberingMode: 'continuous',
+            quantityPrintMode: 'as-is',
+            categories: [
+              {
+                id: 'cat-2-1',
+                code: 'I',
+                name: 'SÁCH GIÁO KHOA LỚP 2',
+                items: [
+                  { id: 'it-2-1', name: 'Tiếng Việt 2 tập 1', price: 15000, quantity: '' },
+                  { id: 'it-2-2', name: 'Tiếng Việt 2 tập 2', price: 15000, quantity: '' },
+                  { id: 'it-2-3', name: 'Toán 2 tập 1', price: 12000, quantity: '' },
+                  { id: 'it-2-4', name: 'Toán 2 tập 2', price: 12000, quantity: '' },
+                  { id: 'it-2-5', name: 'Tự nhiên và Xã hội 2', price: 14000, quantity: '' },
+                  { id: 'it-2-6', name: 'Đạo đức 2', price: 9000, quantity: '' },
+                  { id: 'it-2-7', name: 'Âm nhạc 2', price: 8000, quantity: '' },
+                  { id: 'it-2-8', name: 'Mĩ thuật 2', price: 8000, quantity: '' },
+                  { id: 'it-2-9', name: 'Giáo dục thể chất 2', price: 9000, quantity: '' },
+                  { id: 'it-2-10', name: 'Hoạt động trải nghiệm 2', price: 10000, quantity: '' },
+                  { id: 'it-2-11', name: 'Tiếng Anh 2', price: 47000, quantity: '' }
+                ]
+              },
+              {
+                id: 'cat-2-2',
+                code: 'II',
+                name: 'VỞ BÀI TẬP BỔ TRỢ',
+                items: [
+                  { id: 'it-2-12', name: 'Vở bài tập Tiếng Việt 2 tập 1', price: 9000, quantity: '' },
+                  { id: 'it-2-13', name: 'Vở bài tập Tiếng Việt 2 tập 2', price: 9000, quantity: '' },
+                  { id: 'it-2-14', name: 'Vở bài tập Toán 2 tập 1', price: 8000, quantity: '' },
+                  { id: 'it-2-15', name: 'Vở bài tập Toán 2 tập 2', price: 8000, quantity: '' }
+                ]
+              }
+            ]
+          },
+          'lop-3': {
+            id: 'lop-3',
+            name: 'Lớp 3',
+            schoolName: 'TRƯỜNG TIỂU HỌC PHÚ DIỄN',
+            mainTitle: 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC',
+            subTitle: 'PHỤC VỤ LỚP 3 - NĂM HỌC 2024-2025',
+            gradeClass: 'Lớp: 3A......',
+            note: '* Ghi chú: Phụ huynh ghi số lượng vào các đầu sách cần đăng ký và gửi lại GVCN.',
+            signDate: 'Ngày ...... tháng ...... năm 20...',
+            showTotalRow: true,
+            showSubtotalCol: false,
+            showSignSection: true,
+            numberingMode: 'continuous',
+            quantityPrintMode: 'as-is',
+            categories: [
+              {
+                id: 'cat-3-1',
+                code: 'I',
+                name: 'SÁCH GIÁO KHOA LỚP 3',
+                items: [
+                  { id: 'it-3-1', name: 'Tiếng Việt 3 tập 1', price: 16000, quantity: '' },
+                  { id: 'it-3-2', name: 'Tiếng Việt 3 tập 2', price: 16000, quantity: '' },
+                  { id: 'it-3-3', name: 'Toán 3 tập 1', price: 13000, quantity: '' },
+                  { id: 'it-3-4', name: 'Toán 3 tập 2', price: 13000, quantity: '' },
+                  { id: 'it-3-5', name: 'Tin học và Công nghệ 3', price: 18000, quantity: '' },
+                  { id: 'it-3-6', name: 'Tự nhiên và Xã hội 3', price: 15000, quantity: '' },
+                  { id: 'it-3-7', name: 'Đạo đức 3', price: 10000, quantity: '' },
+                  { id: 'it-3-8', name: 'Tiếng Anh 3', price: 50000, quantity: '' }
+                ]
+              },
+              {
+                id: 'cat-3-2',
+                code: 'II',
+                name: 'VỞ BÀI TẬP BỔ TRỢ',
+                items: [
+                  { id: 'it-3-9', name: 'VBT Tiếng Việt 3 tập 1', price: 9500, quantity: '' },
+                  { id: 'it-3-10', name: 'VBT Tiếng Việt 3 tập 2', price: 9500, quantity: '' },
+                  { id: 'it-3-11', name: 'VBT Toán 3 tập 1', price: 8500, quantity: '' },
+                  { id: 'it-3-12', name: 'VBT Toán 3 tập 2', price: 8500, quantity: '' }
+                ]
+              }
+            ]
+          },
+          'lop-4': {
+            id: 'lop-4',
+            name: 'Lớp 4',
+            schoolName: 'TRƯỜNG TIỂU HỌC PHÚ DIỄN',
+            mainTitle: 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC',
+            subTitle: 'PHỤC VỤ LỚP 4 - NĂM HỌC 2024-2025',
+            gradeClass: 'Lớp: 4A......',
+            note: '* Ghi chú: Phụ huynh ghi số lượng vào các đầu sách cần đăng ký và gửi lại GVCN.',
+            signDate: 'Ngày ...... tháng ...... năm 20...',
+            showTotalRow: true,
+            showSubtotalCol: false,
+            showSignSection: true,
+            numberingMode: 'continuous',
+            quantityPrintMode: 'as-is',
+            categories: [
+              {
+                id: 'cat-4-1',
+                code: 'I',
+                name: 'SÁCH GIÁO KHOA LỚP 4',
+                items: [
+                  { id: 'it-4-1', name: 'Tiếng Việt 4 tập 1', price: 17000, quantity: '' },
+                  { id: 'it-4-2', name: 'Tiếng Việt 4 tập 2', price: 17000, quantity: '' },
+                  { id: 'it-4-3', name: 'Toán 4 tập 1', price: 14000, quantity: '' },
+                  { id: 'it-4-4', name: 'Toán 4 tập 2', price: 14000, quantity: '' },
+                  { id: 'it-4-5', name: 'Lịch sử và Địa lí 4', price: 18000, quantity: '' },
+                  { id: 'it-4-6', name: 'Khoa học 4', price: 16000, quantity: '' },
+                  { id: 'it-4-7', name: 'Tin học 4', price: 12000, quantity: '' },
+                  { id: 'it-4-8', name: 'Công nghệ 4', price: 11000, quantity: '' },
+                  { id: 'it-4-9', name: 'Tiếng Anh 4', price: 52000, quantity: '' }
+                ]
+              },
+              {
+                id: 'cat-4-2',
+                code: 'II',
+                name: 'VỞ BÀI TẬP BỔ TRỢ',
+                items: [
+                  { id: 'it-4-10', name: 'VBT Tiếng Việt 4 tập 1', price: 10000, quantity: '' },
+                  { id: 'it-4-11', name: 'VBT Tiếng Việt 4 tập 2', price: 10000, quantity: '' },
+                  { id: 'it-4-12', name: 'VBT Toán 4 tập 1', price: 9000, quantity: '' },
+                  { id: 'it-4-13', name: 'VBT Toán 4 tập 2', price: 9000, quantity: '' }
+                ]
+              }
+            ]
+          },
+          'lop-5': {
+            id: 'lop-5',
+            name: 'Lớp 5',
+            schoolName: 'TRƯỜNG TIỂU HỌC PHÚ DIỄN',
+            mainTitle: 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC',
+            subTitle: 'PHỤC VỤ LỚP 5 - NĂM HỌC 2024-2025',
+            gradeClass: 'Lớp: 5A......',
+            note: '* Ghi chú: Phụ huynh ghi số lượng vào các đầu sách cần đăng ký và gửi lại GVCN.',
+            signDate: 'Ngày ...... tháng ...... năm 20...',
+            showTotalRow: true,
+            showSubtotalCol: false,
+            showSignSection: true,
+            numberingMode: 'continuous',
+            quantityPrintMode: 'as-is',
+            categories: [
+              {
+                id: 'cat-5-1',
+                code: 'I',
+                name: 'SÁCH GIÁO KHOA LỚP 5',
+                items: [
+                  { id: 'it-5-1', name: 'Tiếng Việt 5 tập 1', price: 18000, quantity: '' },
+                  { id: 'it-5-2', name: 'Tiếng Việt 5 tập 2', price: 18000, quantity: '' },
+                  { id: 'it-5-3', name: 'Toán 5 tập 1', price: 15000, quantity: '' },
+                  { id: 'it-5-4', name: 'Toán 5 tập 2', price: 15000, quantity: '' },
+                  { id: 'it-5-5', name: 'Khoa học 5', price: 17000, quantity: '' },
+                  { id: 'it-5-6', name: 'Lịch sử và Địa lí 5', price: 19000, quantity: '' },
+                  { id: 'it-5-7', name: 'Tin học 5', price: 13000, quantity: '' },
+                  { id: 'it-5-8', name: 'Công nghệ 5', price: 12000, quantity: '' },
+                  { id: 'it-5-9', name: 'Tiếng Anh 5', price: 54000, quantity: '' }
+                ]
+              },
+              {
+                id: 'cat-5-2',
+                code: 'II',
+                name: 'VỞ BÀI TẬP BỔ TRỢ',
+                items: [
+                  { id: 'it-5-10', name: 'VBT Tiếng Việt 5 tập 1', price: 10500, quantity: '' },
+                  { id: 'it-5-11', name: 'VBT Tiếng Việt 5 tập 2', price: 10500, quantity: '' },
+                  { id: 'it-5-12', name: 'VBT Toán 5 tập 1', price: 9500, quantity: '' },
+                  { id: 'it-5-13', name: 'VBT Toán 5 tập 2', price: 9500, quantity: '' }
+                ]
+              }
+            ]
+          },
+          'lop-6': {
+            id: 'lop-6',
+            name: 'Lớp 6',
+            schoolName: 'TRƯỜNG THCS PHÚ DIỄN A',
+            mainTitle: 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC',
+            subTitle: 'PHỤC VỤ LỚP 6 - NĂM HỌC 2024-2025',
+            gradeClass: 'Lớp: 6A......',
+            note: '* Ghi chú: Học sinh/phụ huynh đăng ký mua sách theo danh mục quy định của nhà trường.',
+            signDate: 'Ngày ...... tháng ...... năm 20...',
+            showTotalRow: true,
+            showSubtotalCol: false,
+            showSignSection: true,
+            numberingMode: 'continuous',
+            quantityPrintMode: 'as-is',
+            categories: [
+              {
+                id: 'cat-6-1',
+                code: 'I',
+                name: 'SÁCH GIÁO KHOA CHƯƠNG TRÌNH MỚI',
+                items: [
+                  { id: 'it-6-1', name: 'Toán 6 tập 1', price: 14000, quantity: '' },
+                  { id: 'it-6-2', name: 'Toán 6 tập 2', price: 14000, quantity: '' },
+                  { id: 'it-6-3', name: 'Ngữ văn 6 tập 1', price: 16000, quantity: '' },
+                  { id: 'it-6-4', name: 'Ngữ văn 6 tập 2', price: 16000, quantity: '' },
+                  { id: 'it-6-5', name: 'Khoa học tự nhiên 6', price: 29000, quantity: '' },
+                  { id: 'it-6-6', name: 'Lịch sử & Địa lí 6', price: 22000, quantity: '' },
+                  { id: 'it-6-7', name: 'Tiếng Anh 6', price: 42000, quantity: '' },
+                  { id: 'it-6-8', name: 'Tin học 6', price: 13000, quantity: '' },
+                  { id: 'it-6-9', name: 'Giáo dục công dân 6', price: 10000, quantity: '' },
+                  { id: 'it-6-10', name: 'Công nghệ 6', price: 11000, quantity: '' }
+                ]
+              },
+              {
+                id: 'cat-6-2',
+                code: 'II',
+                name: 'SÁCH BÀI TẬP VÀ BỔ TRỢ',
+                items: [
+                  { id: 'it-6-11', name: 'Bài tập Toán 6 tập 1', price: 11000, quantity: '' },
+                  { id: 'it-6-12', name: 'Bài tập Toán 6 tập 2', price: 11000, quantity: '' },
+                  { id: 'it-6-13', name: 'Bài tập Ngữ văn 6 tập 1', price: 12000, quantity: '' },
+                  { id: 'it-6-14', name: 'Bài tập Ngữ văn 6 tập 2', price: 12000, quantity: '' }
+                ]
+              }
+            ]
+          },
+          'lop-7': {
+            id: 'lop-7',
+            name: 'Lớp 7',
+            schoolName: 'TRƯỜNG THCS PHÚ DIỄN A',
+            mainTitle: 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC',
+            subTitle: 'PHỤC VỤ LỚP 7 - NĂM HỌC 2024-2025',
+            gradeClass: 'Lớp: 7A......',
+            note: '* Ghi chú: Học sinh/phụ huynh đăng ký mua sách theo danh mục quy định của nhà trường.',
+            signDate: 'Ngày ...... tháng ...... năm 20...',
+            showTotalRow: true,
+            showSubtotalCol: false,
+            showSignSection: true,
+            numberingMode: 'continuous',
+            quantityPrintMode: 'as-is',
+            categories: [
+              {
+                id: 'cat-7-1',
+                code: 'I',
+                name: 'SÁCH GIÁO KHOA LỚP 7',
+                items: [
+                  { id: 'it-7-1', name: 'Toán 7 tập 1', price: 15000, quantity: '' },
+                  { id: 'it-7-2', name: 'Toán 7 tập 2', price: 15000, quantity: '' },
+                  { id: 'it-7-3', name: 'Ngữ văn 7 tập 1', price: 17000, quantity: '' },
+                  { id: 'it-7-4', name: 'Ngữ văn 7 tập 2', price: 17000, quantity: '' },
+                  { id: 'it-7-5', name: 'Khoa học tự nhiên 7', price: 31000, quantity: '' },
+                  { id: 'it-7-6', name: 'Lịch sử & Địa lí 7', price: 24000, quantity: '' },
+                  { id: 'it-7-7', name: 'Tiếng Anh 7', price: 45000, quantity: '' },
+                  { id: 'it-7-8', name: 'Tin học 7', price: 14000, quantity: '' },
+                  { id: 'it-7-9', name: 'Giáo dục công dân 7', price: 11000, quantity: '' }
+                ]
+              },
+              {
+                id: 'cat-7-2',
+                code: 'II',
+                name: 'SÁCH BÀI TẬP VÀ BỔ TRỢ',
+                items: [
+                  { id: 'it-7-10', name: 'Bài tập Toán 7 tập 1', price: 12000, quantity: '' },
+                  { id: 'it-7-11', name: 'Bài tập Toán 7 tập 2', price: 12000, quantity: '' },
+                  { id: 'it-7-12', name: 'Bài tập Ngữ văn 7 tập 1', price: 13000, quantity: '' },
+                  { id: 'it-7-13', name: 'Bài tập Ngữ văn 7 tập 2', price: 13000, quantity: '' }
+                ]
+              }
+            ]
+          },
+          'lop-8': {
+            id: 'lop-8',
+            name: 'Lớp 8',
+            schoolName: 'TRƯỜNG THCS PHÚ DIỄN A',
+            mainTitle: 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC',
+            subTitle: 'PHỤC VỤ LỚP 8 - NĂM HỌC 2024-2025',
+            gradeClass: 'Lớp: 8A......',
+            note: '* Ghi chú: Học sinh/phụ huynh đăng ký mua sách theo danh mục quy định của nhà trường.',
+            signDate: 'Ngày ...... tháng ...... năm 20...',
+            showTotalRow: true,
+            showSubtotalCol: false,
+            showSignSection: true,
+            numberingMode: 'continuous',
+            quantityPrintMode: 'as-is',
+            categories: [
+              {
+                id: 'cat-8-1',
+                code: 'I',
+                name: 'SÁCH GIÁO KHOA LỚP 8',
+                items: [
+                  { id: 'it-8-1', name: 'Toán 8 tập 1', price: 16000, quantity: '' },
+                  { id: 'it-8-2', name: 'Toán 8 tập 2', price: 16000, quantity: '' },
+                  { id: 'it-8-3', name: 'Ngữ văn 8 tập 1', price: 18000, quantity: '' },
+                  { id: 'it-8-4', name: 'Ngữ văn 8 tập 2', price: 18000, quantity: '' },
+                  { id: 'it-8-5', name: 'Khoa học tự nhiên 8', price: 33000, quantity: '' },
+                  { id: 'it-8-6', name: 'Lịch sử & Địa lí 8', price: 26000, quantity: '' },
+                  { id: 'it-8-7', name: 'Tiếng Anh 8', price: 47000, quantity: '' },
+                  { id: 'it-8-8', name: 'Tin học 8', price: 15000, quantity: '' },
+                  { id: 'it-8-9', name: 'Giáo dục công dân 8', price: 12000, quantity: '' }
+                ]
+              },
+              {
+                id: 'cat-8-2',
+                code: 'II',
+                name: 'SÁCH BÀI TẬP VÀ BỔ TRỢ',
+                items: [
+                  { id: 'it-8-10', name: 'Bài tập Toán 8 tập 1', price: 13000, quantity: '' },
+                  { id: 'it-8-11', name: 'Bài tập Toán 8 tập 2', price: 13000, quantity: '' },
+                  { id: 'it-8-12', name: 'Bài tập Ngữ văn 8 tập 1', price: 14000, quantity: '' },
+                  { id: 'it-8-13', name: 'Bài tập Ngữ văn 8 tập 2', price: 14000, quantity: '' }
+                ]
+              }
+            ]
+          },
+          'lop-9': {
+            id: 'lop-9',
+            name: 'Lớp 9',
+            schoolName: 'TRƯỜNG THCS PHÚ DIỄN A',
+            mainTitle: 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC',
+            subTitle: 'PHỤC VỤ LỚP 9 - NĂM HỌC 2023-2024',
+            gradeClass: 'Lớp: 9A......',
+            note: '* Ghi chú: Phụ huynh/học sinh đánh dấu (X) hoặc ghi số lượng vào các đầu sách cần đăng ký và nộp lại cho GVCN.',
+            signDate: 'Ngày ...... tháng ...... năm 20...',
+            showTotalRow: true,
+            showSubtotalCol: false,
+            showSignSection: true,
+            numberingMode: 'continuous',
+            quantityPrintMode: 'as-is',
+            categories: [
+              {
+                id: 'cat-9-1',
+                code: 'I',
+                name: 'SÁCH GIÁO KHOA VÀ SÁCH BÀI TẬP',
+                items: [
+                  { id: 'it-9-1', name: 'Toán 9 tập 1', price: 8000, quantity: '' },
+                  { id: 'it-9-2', name: 'Toán 9 tập 2', price: 8000, quantity: '' },
+                  { id: 'it-9-3', name: 'Bài tập Toán 9 tập 1', price: 9500, quantity: '' },
+                  { id: 'it-9-4', name: 'Bài tập Toán 9 tập 2', price: 9500, quantity: '' },
+                  { id: 'it-9-5', name: 'Ngữ văn 9 tập 1', price: 11000, quantity: '' },
+                  { id: 'it-9-6', name: 'Ngữ văn 9 tập 2', price: 11000, quantity: '' },
+                  { id: 'it-9-7', name: 'Vật lí 9', price: 12000, quantity: '' },
+                  { id: 'it-9-8', name: 'Hoá học 9', price: 14000, quantity: '' },
+                  { id: 'it-9-9', name: 'Sinh học 9', price: 13000, quantity: '' },
+                  { id: 'it-9-10', name: 'Tiếng Anh 9 tập 1', price: 37000, quantity: '' },
+                  { id: 'it-9-11', name: 'Tiếng Anh 9 tập 2', price: 37000, quantity: '' },
+                  { id: 'it-9-12', name: 'Lịch sử 9', price: 10000, quantity: '' },
+                  { id: 'it-9-13', name: 'Địa lí 9', price: 10000, quantity: '' },
+                  { id: 'it-9-14', name: 'Giáo dục công dân 9', price: 7000, quantity: '' }
+                ]
+              },
+              {
+                id: 'cat-9-2',
+                code: 'II',
+                name: 'VỞ BÀI TẬP VÀ TÀI LIỆU BỔ TRỢ',
+                items: [
+                  { id: 'it-9-15', name: 'Vở bài tập Ngữ văn 9 tập 1', price: 6500, quantity: '' },
+                  { id: 'it-9-16', name: 'Vở bài tập Ngữ văn 9 tập 2', price: 6500, quantity: '' },
+                  { id: 'it-9-17', name: 'Vở bài tập Lịch sử 9', price: 5500, quantity: '' },
+                  { id: 'it-9-18', name: 'Vở bài tập Địa lí 9', price: 5500, quantity: '' }
+                ]
+              }
+            ]
+          },
+          'lop-10': {
+            id: 'lop-10',
+            name: 'Lớp 10',
+            schoolName: 'TRƯỜNG THPT PHÚ DIỄN',
+            mainTitle: 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC',
+            subTitle: 'PHỤC VỤ LỚP 10 - NĂM HỌC 2024-2025',
+            gradeClass: 'Lớp: 10A......',
+            note: '* Ghi chú: Học sinh tích chọn hoặc ghi số lượng các môn học theo tổ hợp chuyên đề đã chọn.',
+            signDate: 'Ngày ...... tháng ...... năm 20...',
+            showTotalRow: true,
+            showSubtotalCol: false,
+            showSignSection: true,
+            numberingMode: 'continuous',
+            quantityPrintMode: 'as-is',
+            categories: [
+              {
+                id: 'cat-10-1',
+                code: 'I',
+                name: 'SÁCH GIÁO KHOA CHƯƠNG TRÌNH MỚI',
+                items: [
+                  { id: 'it-10-1', name: 'Toán 10 tập 1', price: 18000, quantity: '' },
+                  { id: 'it-10-2', name: 'Toán 10 tập 2', price: 18000, quantity: '' },
+                  { id: 'it-10-3', name: 'Ngữ văn 10 tập 1', price: 20000, quantity: '' },
+                  { id: 'it-10-4', name: 'Ngữ văn 10 tập 2', price: 20000, quantity: '' },
+                  { id: 'it-10-5', name: 'Tiếng Anh 10', price: 52000, quantity: '' },
+                  { id: 'it-10-6', name: 'Vật lí 10', price: 22000, quantity: '' },
+                  { id: 'it-10-7', name: 'Hoá học 10', price: 23000, quantity: '' },
+                  { id: 'it-10-8', name: 'Sinh học 10', price: 21000, quantity: '' },
+                  { id: 'it-10-9', name: 'Lịch sử 10', price: 17000, quantity: '' },
+                  { id: 'it-10-10', name: 'Địa lí 10', price: 17000, quantity: '' },
+                  { id: 'it-10-11', name: 'Giáo dục kinh tế & Pháp luật 10', price: 16000, quantity: '' },
+                  { id: 'it-10-12', name: 'Tin học 10', price: 15000, quantity: '' }
+                ]
+              },
+              {
+                id: 'cat-10-2',
+                code: 'II',
+                name: 'CHUYÊN ĐỀ HỌC TẬP TỰ CHỌN',
+                items: [
+                  { id: 'it-10-13', name: 'Chuyên đề học tập Toán 10', price: 12000, quantity: '' },
+                  { id: 'it-10-14', name: 'Chuyên đề học tập Vật lí 10', price: 13000, quantity: '' },
+                  { id: 'it-10-15', name: 'Chuyên đề học tập Hoá học 10', price: 13000, quantity: '' }
+                ]
+              }
+            ]
+          },
+          'lop-11': {
+            id: 'lop-11',
+            name: 'Lớp 11',
+            schoolName: 'TRƯỜNG THPT PHÚ DIỄN',
+            mainTitle: 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC',
+            subTitle: 'PHỤC VỤ LỚP 11 - NĂM HỌC 2024-2025',
+            gradeClass: 'Lớp: 11A......',
+            note: '* Ghi chú: Học sinh đăng ký mua sách theo tổ hợp môn học của nhà trường.',
+            signDate: 'Ngày ...... tháng ...... năm 20...',
+            showTotalRow: true,
+            showSubtotalCol: false,
+            showSignSection: true,
+            numberingMode: 'continuous',
+            quantityPrintMode: 'as-is',
+            categories: [
+              {
+                id: 'cat-11-1',
+                code: 'I',
+                name: 'SÁCH GIÁO KHOA LỚP 11',
+                items: [
+                  { id: 'it-11-1', name: 'Toán 11 tập 1', price: 19000, quantity: '' },
+                  { id: 'it-11-2', name: 'Toán 11 tập 2', price: 19000, quantity: '' },
+                  { id: 'it-11-3', name: 'Ngữ văn 11 tập 1', price: 21000, quantity: '' },
+                  { id: 'it-11-4', name: 'Ngữ văn 11 tập 2', price: 21000, quantity: '' },
+                  { id: 'it-11-5', name: 'Tiếng Anh 11', price: 55000, quantity: '' },
+                  { id: 'it-11-6', name: 'Vật lí 11', price: 23000, quantity: '' },
+                  { id: 'it-11-7', name: 'Hoá học 11', price: 24000, quantity: '' },
+                  { id: 'it-11-8', name: 'Sinh học 11', price: 22000, quantity: '' },
+                  { id: 'it-11-9', name: 'Lịch sử 11', price: 18000, quantity: '' },
+                  { id: 'it-11-10', name: 'Địa lí 11', price: 18000, quantity: '' }
+                ]
+              },
+              {
+                id: 'cat-11-2',
+                code: 'II',
+                name: 'CHUYÊN ĐỀ HỌC TẬP TỰ CHỌN',
+                items: [
+                  { id: 'it-11-11', name: 'Chuyên đề học tập Toán 11', price: 13000, quantity: '' },
+                  { id: 'it-11-12', name: 'Chuyên đề học tập Vật lí 11', price: 14000, quantity: '' }
+                ]
+              }
+            ]
+          },
+          'lop-12': {
+            id: 'lop-12',
+            name: 'Lớp 12',
+            schoolName: 'TRƯỜNG THPT PHÚ DIỄN',
+            mainTitle: 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC',
+            subTitle: 'PHỤC VỤ LỚP 12 - NĂM HỌC 2024-2025',
+            gradeClass: 'Lớp: 12A......',
+            note: '* Ghi chú: Học sinh đăng ký mua sách theo tổ hợp môn thi tốt nghiệp THPT.',
+            signDate: 'Ngày ...... tháng ...... năm 20...',
+            showTotalRow: true,
+            showSubtotalCol: false,
+            showSignSection: true,
+            numberingMode: 'continuous',
+            quantityPrintMode: 'as-is',
+            categories: [
+              {
+                id: 'cat-12-1',
+                code: 'I',
+                name: 'SÁCH GIÁO KHOA LỚP 12',
+                items: [
+                  { id: 'it-12-1', name: 'Toán 12 tập 1', price: 20000, quantity: '' },
+                  { id: 'it-12-2', name: 'Toán 12 tập 2', price: 20000, quantity: '' },
+                  { id: 'it-12-3', name: 'Ngữ văn 12 tập 1', price: 22000, quantity: '' },
+                  { id: 'it-12-4', name: 'Ngữ văn 12 tập 2', price: 22000, quantity: '' },
+                  { id: 'it-12-5', name: 'Tiếng Anh 12', price: 58000, quantity: '' },
+                  { id: 'it-12-6', name: 'Vật lí 12', price: 24000, quantity: '' },
+                  { id: 'it-12-7', name: 'Hoá học 12', price: 25000, quantity: '' },
+                  { id: 'it-12-8', name: 'Sinh học 12', price: 23000, quantity: '' },
+                  { id: 'it-12-9', name: 'Lịch sử 12', price: 19000, quantity: '' },
+                  { id: 'it-12-10', name: 'Địa lí 12', price: 19000, quantity: '' }
+                ]
+              },
+              {
+                id: 'cat-12-2',
+                code: 'II',
+                name: 'CHUYÊN ĐỀ HỌC TẬP VÀ ÔN THI',
+                items: [
+                  { id: 'it-12-11', name: 'Chuyên đề học tập Toán 12', price: 14000, quantity: '' },
+                  { id: 'it-12-12', name: 'Chuyên đề học tập Vật lí 12', price: 15000, quantity: '' },
+                  { id: 'it-12-13', name: 'Chuyên đề học tập Hoá học 12', price: 15000, quantity: '' }
+                ]
+              }
+            ]
+          }
+        };
+      }
+
+      const FACTORY_PRESETS = generateDefaultTemplates();
+      const STORAGE_KEY = 'PRINT_LIST_BOOK_APP_V4';
+
+      // --- APPLICATION STATE ---
+      let appData = {
+        activeClassKey: 'lop-9',
+        a5RightClassKey: 'same',
+        ownerSignatureImg: '',
+        printLayoutMode: 'a4-single', // 'a4-single' or 'a5-double'
+        // Current working copies for each class:
+        forms: JSON.parse(JSON.stringify(FACTORY_PRESETS)),
+        // User-saved standard templates for each of the 12 classes:
+        userStandardTemplates: JSON.parse(JSON.stringify(FACTORY_PRESETS))
+      };
+
+      let currentZoom = 1.0;
+
+      // --- UTILITIES ---
+      function generateId(prefix = 'id') {
+        return prefix + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 5);
+      }
+
+      function formatMoney(amount) {
+        if (amount === '' || amount === null || isNaN(amount)) return '0';
+        return Number(amount).toLocaleString('en-US');
+      }
+
+      function parseMoney(str) {
+        if (typeof str === 'number') return Math.max(0, Math.floor(str));
+        if (!str) return 0;
+        const cleaned = String(str).replace(/[^\d]/g, '');
+        return cleaned ? parseInt(cleaned, 10) : 0;
+      }
+
+      function escapeHtml(text) {
+        if (!text) return '';
+        return String(text)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let iconSvg = '';
+        if (type === 'success') {
+          iconSvg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        } else if (type === 'error') {
+          iconSvg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+        } else {
+          iconSvg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#3b82f6" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+        }
+
+        toast.innerHTML = `${iconSvg}<span>${message}</span>`;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(10px)';
+          toast.style.transition = 'all 0.3s ease';
+          setTimeout(() => toast.remove(), 300);
+        }, 3400);
+      }
+
+      // --- STORAGE SYSTEM ---
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.forms && typeof parsed.forms === 'object') {
+              appData = parsed;
+              if (!appData.a5RightClassKey) appData.a5RightClassKey = 'same';
+              // Ensure all 12 classes exist
+              for (let i = 1; i <= 12; i++) {
+                const k = 'lop-' + i;
+                if (!appData.forms[k]) {
+                  appData.forms[k] = JSON.parse(JSON.stringify(FACTORY_PRESETS[k]));
+                }
+                if (!appData.userStandardTemplates || !appData.userStandardTemplates[k]) {
+                  if (!appData.userStandardTemplates) appData.userStandardTemplates = {};
+                  appData.userStandardTemplates[k] = JSON.parse(JSON.stringify(FACTORY_PRESETS[k]));
+                }
+
+                // Tự động kiểm tra và sửa đúng tên lớp cho cornerSignature của từng lớp
+                const curForm = appData.forms[k];
+                if (curForm && curForm.name) {
+                  if (!curForm.cornerSignature || (curForm.cornerSignature.includes('Lớp ') && !curForm.cornerSignature.includes(curForm.name))) {
+                    curForm.cornerSignature = 'VPP Thanh Tâm - ' + curForm.name;
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Lỗi đọc localStorage:', e);
+        }
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+        } catch (e) {
+          console.error('Lỗi ghi localStorage:', e);
+          showToast('Bộ nhớ trình duyệt đầy, không thể lưu!', 'error');
+        }
+      }
+
+      function getActiveForm() {
+        if (!appData.forms[appData.activeClassKey]) {
+          appData.activeClassKey = 'lop-9';
+        }
+        return appData.forms[appData.activeClassKey];
+      }
+
+      // --- CALCULATE SUMMARY TOTALS ACCURATELY ---
+      function calculateFormTotals(form) {
+        let totalItemsCount = 0;
+        let totalQtySum = 0;
+        let hasAnyNumericQty = false;
+        let grandTotalAmount = 0;
+
+        form.categories.forEach(cat => {
+          (cat.items || []).forEach(item => {
+            totalItemsCount++;
+            const p = parseMoney(item.price);
+            const q = parseMoney(item.quantity);
+            if (item.quantity !== '' && item.quantity !== null && !isNaN(q) && q > 0) {
+              hasAnyNumericQty = true;
+              totalQtySum += q;
+            }
+          });
+        });
+
+        if (hasAnyNumericQty && form.quantityPrintMode !== 'blank') {
+          form.categories.forEach(cat => {
+            (cat.items || []).forEach(item => {
+              const p = parseMoney(item.price);
+              const q = parseMoney(item.quantity);
+              grandTotalAmount += (p * (q > 0 ? q : 0));
+            });
+          });
+        } else {
+          form.categories.forEach(cat => {
+            (cat.items || []).forEach(item => {
+              grandTotalAmount += parseMoney(item.price);
+            });
+          });
+        }
+
+        return {
+          totalItemsCount,
+          totalQtySum,
+          hasAnyNumericQty,
+          grandTotalAmount
+        };
+      }
+
+      // --- RENDER DOM ---
+      const classesNavList = document.getElementById('classesNavList');
+      const appSidebarRight = document.getElementById('appSidebarRight');
+      const paperContainer = document.getElementById('paperContainer');
+      const paperWrapper = document.getElementById('paperWrapper');
+      const zoomLevelDisplay = document.getElementById('zoomLevelDisplay');
+      const layoutModeIndicator = document.getElementById('layoutModeIndicator');
+      const printLayoutModeSelect = document.getElementById('printLayoutModeSelect');
+      const headerLayoutModeSelect = document.getElementById('headerLayoutModeSelect');
+            const dynamicPrintPageStyle = document.getElementById('dynamicPrintPageStyle');
+
+      // Right sidebar controls
+      const sttNumberingMode = document.getElementById('sttNumberingMode');
+      const quantityPrintMode = document.getElementById('quantityPrintMode');
+      const selectTableDensity = document.getElementById('selectTableDensity');
+      const chkShowRuler = document.getElementById('chkShowRuler');
+      const chkShowTotalRow = document.getElementById('chkShowTotalRow');
+      const chkShowSubtotalCol = document.getElementById('chkShowSubtotalCol');
+      const chkShowSignSection = document.getElementById('chkShowSignSection');
+      const statTotalItems = document.getElementById('statTotalItems');
+      const statTotalAmount = document.getElementById('statTotalAmount');
+      const statTotalAmountLabel = document.getElementById('statTotalAmountLabel');
+
+      // 1. Render Left Sidebar Navigation (Lớp 1 -> Lớp 12)
+      function renderLeftSidebarClasses() {
+        classesNavList.innerHTML = '';
+        for (let i = 1; i <= 12; i++) {
+          const classKey = 'lop-' + i;
+          const form = appData.forms[classKey];
+          const isActive = classKey === appData.activeClassKey;
+          const totalBooks = form.categories.reduce((acc, cat) => acc + (cat.items ? cat.items.length : 0), 0);
+
+          const item = document.createElement('div');
+          item.className = `class-nav-item ${isActive ? 'active' : ''}`;
+          item.innerHTML = `
+            <span>Lớp ${i}</span>
+            <span class="class-nav-badge">${totalBooks} sách</span>
+          `;
+          item.onclick = () => {
+            if (appData.activeClassKey !== classKey || (appData.a5RightClassKey && appData.a5RightClassKey !== 'same')) {
+              appData.activeClassKey = classKey;
+              appData.a5RightClassKey = 'same';
+              saveState();
+              renderFullUI();
+            }
+          };
+          classesNavList.appendChild(item);
+        }
+
+        // Update button labels for active class
+        const currentNum = appData.activeClassKey.replace('lop-', '');
+        document.getElementById('btnSetCurrentClassStandard').textContent = `⭐ Lưu Mẫu Chuẩn Lớp ${currentNum}`;
+        document.getElementById('btnResetCurrentClassStandard').textContent = `🔄 Về Mẫu Chuẩn Lớp ${currentNum}`;
+      }
+
+      // 2. Render Right Sidebar Controls
+      function renderRightSidebarControls() {
+        const form = getActiveForm();
+        if (printLayoutModeSelect) printLayoutModeSelect.value = appData.printLayoutMode || 'a4-single';
+        if (headerLayoutModeSelect) headerLayoutModeSelect.value = appData.printLayoutMode || 'a4-single';
+                sttNumberingMode.value = form.numberingMode || 'continuous';
+        quantityPrintMode.value = form.quantityPrintMode || 'as-is';
+        chkShowTotalRow.checked = form.showTotalRow !== false;
+        chkShowSubtotalCol.checked = form.showSubtotalCol === true;
+        chkShowSignSection.checked = form.showSignSection !== false;
+        if (selectTableDensity) selectTableDensity.value = form.tableDensity || 'standard';
+        if (chkShowRuler) chkShowRuler.checked = appData.showRuler !== false;
+
+        const totals = calculateFormTotals(form);
+        statTotalItems.textContent = totals.totalItemsCount;
+        statTotalAmount.textContent = formatMoney(totals.grandTotalAmount) + ' đ';
+        if (totals.hasAnyNumericQty && form.quantityPrintMode !== 'blank') {
+          statTotalAmountLabel.textContent = `Tổng tiền (${totals.totalQtySum} cuốn)`;
+        } else {
+          statTotalAmountLabel.textContent = 'Ước tính giá 1 bộ';
+        }
+      }
+
+      // 3. Render HTML Table Fragment for a Form
+      function generateFormHtml(form, isMirrorCopy = false) {
+        const showSubtotalCol = form.showSubtotalCol === true;
+        const totals = calculateFormTotals(form);
+        const totalColSpan = showSubtotalCol ? 4 : 3;
+        const isA5 = appData.printLayoutMode === 'a5-double';
+
+        let globalIndex = 1;
+        let tableRowsHtml = '';
+
+        form.categories.forEach((cat, catIdx) => {
+          let categoryLocalIndex = 1;
+
+          // Category Row
+          tableRowsHtml += `
+            <tr class="row-category">
+              <td class="col-stt cat-code-cell">
+                <div class="cell-editable-text" ${isMirrorCopy ? '' : 'contenteditable="true"'} spellcheck="false" 
+                     data-type="cat-code" data-cat-idx="${catIdx}">
+                  ${escapeHtml(cat.code || '')}
+                </div>
+              </td>
+              <td class="cat-name-cell" colspan="${totalColSpan}">
+                <div class="cell-editable-text" ${isMirrorCopy ? '' : 'contenteditable="true"'} spellcheck="false" 
+                     data-type="cat-name" data-cat-idx="${catIdx}">
+                  ${escapeHtml(cat.name || '')}
+                </div>
+                ${isMirrorCopy ? '' : `
+                <div class="row-action-handle no-print" contenteditable="false">
+                  <button class="handle-btn" title="Thêm sách vào nhóm này" onclick="window.appHandlers.addItemToCat(${catIdx})">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  </button>
+                  <button class="handle-btn" title="Di chuyển nhóm lên" onclick="window.appHandlers.moveCategory(${catIdx}, -1)">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                  </button>
+                  <button class="handle-btn" title="Di chuyển nhóm xuống" onclick="window.appHandlers.moveCategory(${catIdx}, 1)">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </button>
+                  <button class="handle-btn danger" title="Xóa nhóm này" onclick="window.appHandlers.deleteCategory(${catIdx})">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
+                </div>`}
+              </td>
+            </tr>
+          `;
+
+          // Item Rows
+          if (cat.items && cat.items.length > 0) {
+            cat.items.forEach((item, itemIdx) => {
+              const currentStt = (form.numberingMode === 'per-category') ? categoryLocalIndex : globalIndex;
+              globalIndex++;
+              categoryLocalIndex++;
+
+              const priceNum = parseMoney(item.price);
+              const qtyNum = parseMoney(item.quantity);
+              const itemSubtotal = priceNum * (qtyNum > 0 ? qtyNum : 0);
+              const displayQty = (form.quantityPrintMode === 'blank') ? '' : (item.quantity !== undefined ? item.quantity : '');
+
+              tableRowsHtml += `
+                <tr class="row-item">
+                  <td class="col-stt item-stt">${currentStt}</td>
+                  <td class="col-name item-name">
+                    <div class="cell-editable-text" ${isMirrorCopy ? '' : 'contenteditable="true"'} spellcheck="false" 
+                         data-type="item-name" data-cat-idx="${catIdx}" data-item-idx="${itemIdx}">
+                      ${escapeHtml(item.name || '')}
+                    </div>
+                    ${isMirrorCopy ? '' : `
+                    <div class="row-action-handle no-print" contenteditable="false">
+                      <button class="handle-btn" title="Thêm sách bên dưới" onclick="window.appHandlers.insertItemBelow(${catIdx}, ${itemIdx})">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                      </button>
+                      <button class="handle-btn" title="Chuyển lên" onclick="window.appHandlers.moveItem(${catIdx}, ${itemIdx}, -1)">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                      </button>
+                      <button class="handle-btn" title="Chuyển xuống" onclick="window.appHandlers.moveItem(${catIdx}, ${itemIdx}, 1)">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      </button>
+                      <button class="handle-btn danger" title="Xóa dòng này" onclick="window.appHandlers.deleteItem(${catIdx}, ${itemIdx})">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                      </button>
+                    </div>`}
+                  </td>
+                  <td class="col-price item-price">
+                    <div class="cell-editable-text" ${isMirrorCopy ? '' : 'contenteditable="true"'} spellcheck="false" 
+                         data-type="item-price" data-cat-idx="${catIdx}" data-item-idx="${itemIdx}">
+                      ${formatMoney(item.price)}
+                    </div>
+                  </td>
+                  <td class="col-qty item-qty">
+                    <div class="cell-editable-text" ${isMirrorCopy ? '' : 'contenteditable="true"'} spellcheck="false" 
+                         data-type="item-qty" data-cat-idx="${catIdx}" data-item-idx="${itemIdx}">
+                      ${escapeHtml(String(displayQty))}
+                    </div>
+                  </td>
+                  ${showSubtotalCol ? `
+                  <td class="col-subtotal item-subtotal item-subtotal-cell" data-cat-idx="${catIdx}" data-item-idx="${itemIdx}">
+                    ${(qtyNum > 0 && priceNum > 0 && form.quantityPrintMode !== 'blank') ? formatMoney(itemSubtotal) : ''}
+                  </td>` : ''}
+                </tr>
+              `;
+            });
+          }
+
+        });
+
+        // Total Row: MERGED AMOUNT & CURRENCY INTO ONE CELL!
+        let totalFooterHtml = '';
+        if (form.showTotalRow !== false) {
+          const totalLabel = (totals.hasAnyNumericQty && form.quantityPrintMode !== 'blank')
+            ? `TỔNG CỘNG TIỀN ĐẶT MUA (${totals.totalQtySum} CUỐN)`
+            : 'TỔNG CỘNG TIỀN BỘ SÁCH';
+
+          totalFooterHtml = `
+            <tr class="row-total">
+              <td colspan="2" class="table-total-label" style="text-align: center; font-weight: bold; padding: 6px;">${totalLabel}</td>
+              <td colspan="${showSubtotalCol ? 3 : 2}" class="table-total-value" style="text-align: right; font-weight: bold; padding: 6px 10px;">
+                ${formatMoney(totals.grandTotalAmount)} đồng
+              </td>
+            </tr>
+          `;
+        }
+
+        let cornerSig = form.cornerSignature;
+        if (!cornerSig || (cornerSig.includes('Lớp ') && form.name && !cornerSig.includes(form.name))) {
+          cornerSig = 'VPP Thanh Tâm - ' + (form.name || '');
+          form.cornerSignature = cornerSig;
+        }
+        const signTitleVal = form.signTitle || 'CHỦ CỬA HÀNG';
+
+        return `
+          <!-- Dòng thông tin góc phải tờ giấy (signature/branding theo yêu cầu) -->
+          <div class="sheet-top-right-corner">
+            <div class="corner-sig-text" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="corner-sig"'} spellcheck="false" title="Nhấp vào để chỉnh sửa thông tin góc phải">
+              ${escapeHtml(cornerSig)}
+            </div>
+          </div>
+
+          <!-- Header hành chính -->
+          <div class="phieu-header">
+            <div class="phieu-top-row">
+              <div class="school-name-box" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="school-name"'} spellcheck="false">
+                ${escapeHtml(form.schoolName || 'TRƯỜNG TIỂU HỌC PHÚ DIỄN')}
+              </div>
+            </div>
+
+            <div class="phieu-title-center">
+              <div class="main-title" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="main-title"'} spellcheck="false">
+                ${escapeHtml(form.mainTitle || 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC')}
+              </div>
+              
+              <div class="sub-title" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="sub-title"'} spellcheck="false">
+                ${escapeHtml(form.subTitle || '')}
+              </div>
+              
+              <div class="grade-class" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="grade-class"'} spellcheck="false">
+                ${escapeHtml(form.gradeClass || 'Lớp:......')}
+              </div>
+            </div>
+          </div>
+
+          <!-- Bảng 4 hoặc 5 Cột -->
+          <table class="phieu-table">
+            <thead>
+              <tr>
+                <th class="col-stt">STT</th>
+                <th class="col-name">TÊN SẢN PHẨM</th>
+                <th class="col-price">ĐƠN GIÁ</th>
+                <th class="col-qty" title="Số lượng">SL</th>
+                ${showSubtotalCol ? '<th class="col-subtotal">THÀNH TIỀN</th>' : ''}
+              </tr>
+            </thead>
+            <tbody class="form-table-body">
+              ${tableRowsHtml}
+            </tbody>
+            <tfoot>
+              ${totalFooterHtml}
+            </tfoot>
+          </table>
+
+          
+
+          <!-- Footer hành chính -->
+          <div class="phieu-footer">
+            <div class="phieu-note" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="note"'} spellcheck="false">
+              ${escapeHtml(form.note || '* Ghi chú: Đánh dấu hoặc ghi số lượng vào các đầu sách cần đăng ký và gửi lại.')}
+            </div>
+
+            ${form.showSignSection !== false ? `
+            <div class="phieu-sign-row">
+              <div class="phieu-sign-box">
+                <div class="sign-date" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="sign-date"'} spellcheck="false">
+                  ${escapeHtml(form.signDate || 'Ngày ...... tháng ...... năm 20...')}
+                </div>
+                <div class="sign-title" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="sign-title"'} spellcheck="false">
+                  ${escapeHtml(signTitleVal)}
+                </div>
+                <div class="sign-sub">(Ký và ghi rõ họ tên)</div>
+                <div class="sign-space" ${isMirrorCopy ? '' : 'onclick="document.getElementById(\'ownerSigUploadInput\').click();"'} title="${isMirrorCopy ? '' : 'Nhấp để tải ảnh chữ ký / con dấu'}">
+                  ${appData.ownerSignatureImg ? `
+                    <img src="${appData.ownerSignatureImg}" class="owner-sig-img" alt="Chữ ký chủ cửa hàng">
+                  ` : `
+                    ${isMirrorCopy ? '' : '<span class="sig-placeholder-hint no-print">✍️ (Nhấp tải ảnh con dấu / chữ ký)</span>'}
+                  `}
+                </div>
+              </div>
+            </div>` : ''}
+          </div>
+        `;
+      }
+
+            // 4. Render Entire Paper Sheet Container
+      function renderSheet() {
+        const form = getActiveForm();
+        const isA5Double = appData.printLayoutMode === 'a5-double';
+
+        // In A5 mode, auto-detect if either slip has more than 14 items to apply compact density automatically
+        const leftForm = form;
+        const rightKey = appData.a5RightClassKey;
+        const isInterleaved = isA5Double && rightKey && rightKey !== 'same' && rightKey !== leftForm.id && appData.forms[rightKey];
+        const rightForm = isInterleaved ? appData.forms[rightKey] : leftForm;
+
+        // Đồng bộ hóa tùy chọn hiển thị bản in giữa 2 nửa trang A5 trên cùng 1 tờ giấy
+        if (isA5Double && isInterleaved) {
+          rightForm.showSignSection = leftForm.showSignSection;
+          rightForm.showSubtotalCol = leftForm.showSubtotalCol;
+          rightForm.showTotalRow = leftForm.showTotalRow;
+          rightForm.quantityPrintMode = leftForm.quantityPrintMode;
+          rightForm.numberingMode = leftForm.numberingMode;
+        }
+
+        const maxSlipItems = Math.max(
+          leftForm.categories.reduce((acc, c) => acc + (c.items ? c.items.length : 0), 0),
+          rightForm.categories.reduce((acc, c) => acc + (c.items ? c.items.length : 0), 0)
+        );
+        const isCompact = form.tableDensity === 'compact' || (isA5Double && maxSlipItems > 14);
+
+        if (isA5Double) {
+          // A4 Landscape with 2 x A5 Portrait copies side-by-side
+
+          if (isInterleaved) {
+            layoutModeIndicator.innerHTML = `🔀 Xen kẽ: <b>${leftForm.name}</b> + <b>${rightForm.name}</b> (Khổ A5)`;
+          } else {
+            layoutModeIndicator.textContent = '📄📄 Khổ A5 tiết kiệm (2 phiếu / trang A4)';
+          }
+
+          dynamicPrintPageStyle.innerHTML = `
+            @page {
+              size: A4 landscape;
+              margin: 0 !important;
+            }
+          `;
+
+          paperContainer.className = 'a5-dual-sheet' + (isCompact ? ' compact-density' : '');
+          paperContainer.innerHTML = `
+            <div class="a5-half-page a5-left" id="liveFormContainer">
+              ${generateFormHtml(leftForm, false)}
+            </div>
+            <div class="a5-cut-divider">
+              <div class="a5-cut-line"></div>
+              
+            </div>
+            <div class="a5-half-page a5-right" id="mirrorFormContainer">
+              ${generateFormHtml(rightForm, !isInterleaved)}
+            </div>
+          `;
+        } else {
+          // Standard A4 Portrait (1 copy per page)
+          layoutModeIndicator.textContent = '📄 Khổ A4 đơn (1 phiếu / trang A4)';
+          dynamicPrintPageStyle.innerHTML = `
+            @page {
+              size: A4 portrait;
+              margin: 0 !important;
+            }
+          `;
+
+          paperContainer.className = 'a4-single-sheet' + (isCompact ? ' compact-density' : '');
+          paperContainer.innerHTML = `
+            <div id="liveFormContainer">
+              ${generateFormHtml(form, false)}
+            </div>
+          `;
+        }
+
+        setTimeout(updatePageRulerAndOverflow, 40);
+      }
+
+      function renderFullUI() {
+        renderLeftSidebarClasses();
+        renderRightSidebarControls();
+        renderSheet();
+        setupInlineEditing();
+        setTimeout(updatePageRulerAndOverflow, 40);
+      }
+
+      // Real-time update for totals without replacing editing DOM
+            // Helper to check if currently interleaving 2 different classes
+      function isInterleavedMode() {
+        return appData.printLayoutMode === 'a5-double' &&
+               appData.a5RightClassKey &&
+               appData.a5RightClassKey !== 'same' &&
+               appData.a5RightClassKey !== appData.activeClassKey &&
+               !!appData.forms[appData.a5RightClassKey];
+      }
+
+      // Update total row and subtotal cells for a specific container and form independently
+      function updateSlipTotals(container, form) {
+        if (!container || !form) return;
+        const totals = calculateFormTotals(form);
+        const showSubtotalCol = form.showSubtotalCol === true;
+
+        if (showSubtotalCol) {
+          (form.categories || []).forEach((cat, catIdx) => {
+            (cat.items || []).forEach((item, itemIdx) => {
+              const p = parseMoney(item.price);
+              const q = parseMoney(item.quantity);
+              const sub = p * (q > 0 ? q : 0);
+              const cell = container.querySelector(`.item-subtotal-cell[data-cat-idx="${catIdx}"][data-item-idx="${itemIdx}"]`);
+              if (cell) cell.textContent = (q > 0 && p > 0 && form.quantityPrintMode !== 'blank') ? formatMoney(sub) : '';
+            });
+          });
+        }
+
+        const totalVal = container.querySelector('.table-total-value');
+        const totalLabel = container.querySelector('.table-total-label');
+        if (totalVal) {
+          totalVal.textContent = `${formatMoney(totals.grandTotalAmount)} đồng`;
+        }
+        if (totalLabel) {
+          if (totals.hasAnyNumericQty && form.quantityPrintMode !== 'blank') {
+            totalLabel.textContent = `TỔNG CỘNG TIỀN ĐẶT MUA (${totals.totalQtySum} CUỐN)`;
+          } else {
+            totalLabel.textContent = 'TỔNG CỘNG TIỀN BỘ SÁCH';
+          }
+        }
+      }
+
+      function updateTotalsRealtime() {
+        const liveContainer = document.getElementById('liveFormContainer');
+        const mirrorContainer = document.getElementById('mirrorFormContainer');
+        const leftForm = getActiveForm();
+        updateSlipTotals(liveContainer, leftForm);
+
+        if (appData.printLayoutMode === 'a5-double') {
+          const rightForm = isInterleavedMode() ? appData.forms[appData.a5RightClassKey] : leftForm;
+          updateSlipTotals(mirrorContainer, rightForm);
+        }
+
+        // Update Right Sidebar Stats based on active form
+        const totals = calculateFormTotals(leftForm);
+        statTotalItems.textContent = totals.totalItemsCount;
+        statTotalAmount.textContent = formatMoney(totals.grandTotalAmount) + ' đ';
+        if (totals.hasAnyNumericQty && leftForm.quantityPrintMode !== 'blank') {
+          statTotalAmountLabel.textContent = `Tổng tiền (${totals.totalQtySum} cuốn)`;
+        } else {
+          statTotalAmountLabel.textContent = 'Ước tính giá 1 bộ';
+        }
+      }
+
+      // --- INLINE EDITING & TWO-WAY SYNC SYSTEM ---
+      function setupInlineEditing() {
+        const liveContainer = document.getElementById('liveFormContainer');
+        const mirrorContainer = document.getElementById('mirrorFormContainer');
+        if (!liveContainer) return;
+
+        function attachSlipEvents(container, getTargetForm, isRightSlip) {
+          if (!container) return;
+
+          // Event Delegation for blur (editing any field)
+          container.addEventListener('blur', (e) => {
+            const target = e.target;
+            const type = target.getAttribute('data-type');
+            if (!type) return;
+
+            const f = getTargetForm();
+            if (!f) return;
+
+            const catIdx = target.hasAttribute('data-cat-idx') ? parseInt(target.getAttribute('data-cat-idx'), 10) : null;
+            const itemIdx = target.hasAttribute('data-item-idx') ? parseInt(target.getAttribute('data-item-idx'), 10) : null;
+            const val = target.innerText.trim();
+
+            if (type === 'corner-sig') {
+              f.cornerSignature = val;
+            } else if (type === 'school-name') {
+              f.schoolName = val;
+            } else if (type === 'main-title') {
+              f.mainTitle = val;
+            } else if (type === 'sub-title') {
+              f.subTitle = val;
+            } else if (type === 'grade-class') {
+              f.gradeClass = val;
+            } else if (type === 'note') {
+              f.note = val;
+            } else if (type === 'sign-date') {
+              f.signDate = val;
+            } else if (type === 'sign-title') {
+              f.signTitle = val;
+            } else if (type === 'cat-code') {
+              if (f.categories[catIdx]) f.categories[catIdx].code = val;
+            } else if (type === 'cat-name') {
+              if (f.categories[catIdx]) f.categories[catIdx].name = val;
+            } else if (type === 'item-name') {
+              if (f.categories[catIdx] && f.categories[catIdx].items[itemIdx]) {
+                f.categories[catIdx].items[itemIdx].name = val;
+              }
+            } else if (type === 'item-price') {
+              if (f.categories[catIdx] && f.categories[catIdx].items[itemIdx]) {
+                const parsed = parseMoney(val);
+                f.categories[catIdx].items[itemIdx].price = parsed;
+                target.innerText = formatMoney(parsed);
+                updateSlipTotals(container, f);
+              }
+            } else if (type === 'item-qty') {
+              if (f.categories[catIdx] && f.categories[catIdx].items[itemIdx]) {
+                f.categories[catIdx].items[itemIdx].quantity = val;
+                updateSlipTotals(container, f);
+              }
+            }
+
+            saveState();
+
+            // ONLY sync to mirror if NOT in interleaved mode and editing the primary slip!
+            if (!isInterleavedMode() && !isRightSlip && appData.printLayoutMode === 'a5-double') {
+              if (mirrorContainer) {
+                mirrorContainer.innerHTML = generateFormHtml(f, true);
+              }
+            }
+          }, true);
+
+          // Event Delegation for input (real-time calculations)
+          container.addEventListener('input', (e) => {
+            const target = e.target;
+            const type = target.getAttribute('data-type');
+            if (type === 'item-qty' || type === 'item-price') {
+              const f = getTargetForm();
+              if (!f) return;
+              const catIdx = parseInt(target.getAttribute('data-cat-idx'), 10);
+              const itemIdx = parseInt(target.getAttribute('data-item-idx'), 10);
+              const val = target.innerText.trim();
+
+              if (f.categories[catIdx] && f.categories[catIdx].items[itemIdx]) {
+                if (type === 'item-qty') {
+                  f.categories[catIdx].items[itemIdx].quantity = val;
+                } else {
+                  f.categories[catIdx].items[itemIdx].price = parseMoney(val);
+                }
+                updateSlipTotals(container, f);
+                saveState();
+
+                // If not interleaved and editing left slip, also update mirror totals
+                if (!isInterleavedMode() && !isRightSlip && mirrorContainer) {
+                  updateSlipTotals(mirrorContainer, f);
+                }
+              }
+            }
+          });
+
+          // Enter key blur
+          container.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.target.blur();
+            }
+          });
+        }
+
+        // Attach to left container
+        attachSlipEvents(liveContainer, () => getActiveForm(), false);
+
+        // Attach to right container (when present and interleaved)
+        if (mirrorContainer && isInterleavedMode()) {
+          attachSlipEvents(mirrorContainer, () => appData.forms[appData.a5RightClassKey], true);
+        }
+
+        // Intercept paste to preserve pure text
+        document.addEventListener('paste', (e) => {
+          if (e.target && e.target.isContentEditable) {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+            document.execCommand('insertText', false, text);
+          }
+        });
+      }
+
+      // --- EXPOSED APP HANDLERS ---
+      window.appHandlers = {
+        toggleAutoFit: function () {
+          const form = getActiveForm();
+          form.tableDensity = form.tableDensity === 'compact' ? 'standard' : 'compact';
+          saveState();
+          renderFullUI();
+          if (form.tableDensity === 'compact') {
+            showToast('⚡ Đã kích hoạt chế độ thu gọn để vừa khít 1 trang A4!', 'success');
+          } else {
+            showToast('Đã quay lại mật độ bảng chuẩn', 'info');
+          }
+        },
+
+        addCategory: function (name = 'DANH MỤC MỚI', code = '') {
+          const form = getActiveForm();
+          if (!code) {
+            const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+            code = romanNumerals[form.categories.length] || `Mục ${form.categories.length + 1}`;
+          }
+
+          form.categories.push({
+            id: generateId('cat'),
+            code: code,
+            name: name,
+            items: [
+              { id: generateId('item'), name: 'Tên sách mẫu', price: 10000, quantity: '' }
+            ]
+          });
+
+          saveState();
+          renderFullUI();
+          showToast(`Đã thêm nhóm mới: ${code}`, 'success');
+        },
+
+        moveCategory: function (catIdx, delta) {
+          const form = getActiveForm();
+          const newIdx = catIdx + delta;
+          if (newIdx < 0 || newIdx >= form.categories.length) return;
+
+          const temp = form.categories[catIdx];
+          form.categories[catIdx] = form.categories[newIdx];
+          form.categories[newIdx] = temp;
+
+          saveState();
+          renderFullUI();
+        },
+
+        deleteCategory: function (catIdx) {
+          const form = getActiveForm();
+          if (form.categories.length <= 1) {
+            showToast('Mẫu phiếu phải giữ lại ít nhất 1 nhóm sản phẩm!', 'error');
+            return;
+          }
+          const catName = form.categories[catIdx].name || 'này';
+          if (confirm(`Bạn có chắc muốn xóa toàn bộ nhóm "${catName}" không?`)) {
+            form.categories.splice(catIdx, 1);
+            saveState();
+            renderFullUI();
+            showToast('Đã xóa nhóm sản phẩm', 'info');
+          }
+        },
+
+        addItemToCat: function (catIdx) {
+          const form = getActiveForm();
+          if (!form.categories[catIdx]) return;
+
+          form.categories[catIdx].items.push({
+            id: generateId('item'),
+            name: 'Sách mới thêm',
+            price: 10000,
+            quantity: ''
+          });
+
+          saveState();
+          renderFullUI();
+          showToast('Đã thêm 1 dòng sách mới', 'success');
+        },
+
+        insertItemBelow: function (catIdx, itemIdx) {
+          const form = getActiveForm();
+          if (!form.categories[catIdx]) return;
+
+          form.categories[catIdx].items.splice(itemIdx + 1, 0, {
+            id: generateId('item'),
+            name: 'Sách mới',
+            price: 10000,
+            quantity: ''
+          });
+
+          saveState();
+          renderFullUI();
+        },
+
+        moveItem: function (catIdx, itemIdx, delta) {
+          const form = getActiveForm();
+          const items = form.categories[catIdx].items;
+          const newIdx = itemIdx + delta;
+          if (newIdx < 0 || newIdx >= items.length) return;
+
+          const temp = items[itemIdx];
+          items[itemIdx] = items[newIdx];
+          items[newIdx] = temp;
+
+          saveState();
+          renderFullUI();
+        },
+
+        deleteItem: function (catIdx, itemIdx) {
+          const form = getActiveForm();
+          form.categories[catIdx].items.splice(itemIdx, 1);
+          saveState();
+          renderFullUI();
+          showToast('Đã xóa 1 dòng sách', 'info');
+        }
+      };
+
+      // --- EXCEL IMPORT ENGINE ---
+      function isTableHeaderRow(row) {
+        const text = row.map(c => String(c).toLowerCase().trim()).join(' | ');
+        const hasSTT = /\b(stt|tt)\b/i.test(text);
+        const hasName = /(tên\s+sản\s+phẩm|tên\s+sách|danh\s+mục|\btên\b)/i.test(text);
+        const hasPrice = /(đơn\s+giá|giá\s+tiền|giá\s+bìa|\bgiá\b)/i.test(text);
+        const hasQty = /(số\s+lượng|\bsl\b|đặt\s+mua)/i.test(text);
+        return (hasSTT && (hasName || hasPrice || hasQty)) || (hasName && hasPrice);
+      }
+
+      function handleExcelFile(file) {
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            if (typeof XLSX === 'undefined') {
+              showToast('Thư viện Excel đang tải, vui lòng thử lại sau vài giây!', 'error');
+              return;
+            }
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+
+            if (!rows || rows.length === 0) {
+              showToast('File Excel trống không có dữ liệu!', 'error');
+              return;
+            }
+
+            let schoolName = '';
+            let mainTitle = '';
+            let subTitle = '';
+            let headerRowIdx = -1;
+            let colStt = 0, colName = 1, colPrice = 2, colQty = 3;
+
+            for (let r = 0; r < Math.min(rows.length, 12); r++) {
+              if (isTableHeaderRow(rows[r])) {
+                headerRowIdx = r;
+                rows[r].forEach((cell, idx) => {
+                  const c = String(cell).toLowerCase().trim();
+                  if (/\b(stt|tt)\b/i.test(c)) colStt = idx;
+                  else if (/(tên\s+sản\s+phẩm|tên\s+sách|tên|sản\s+phẩm|mặt\s+hàng)/i.test(c)) colName = idx;
+                  else if (/(đơn\s+giá|giá\s+tiền|giá\s+bìa|\bgiá\b)/i.test(c)) colPrice = idx;
+                  else if (/(số\s+lượng|\bsl\b|đặt\s+mua)/i.test(c)) colQty = idx;
+                });
+                break;
+              } else {
+                const full = rows[r].filter(Boolean).join(' ').trim();
+                if (/trường|thcs|thpt|tiểu học/i.test(full) && !schoolName) schoolName = full;
+                else if (/đăng k[íý]|danh mục|bảng kê/i.test(full) && !mainTitle) mainTitle = full;
+                else if (/lớp|khối|năm học/i.test(full) && !subTitle) subTitle = full;
+              }
+            }
+
+            const startIdx = headerRowIdx !== -1 ? headerRowIdx + 1 : 0;
+            const categories = [];
+            let currentCat = null;
+            let totalImportedItems = 0;
+
+            for (let r = startIdx; r < rows.length; r++) {
+              const row = rows[r];
+              if (!row || row.every(c => String(c).trim() === '')) continue;
+
+              const cell0 = String(row[colStt] !== undefined ? row[colStt] : '').trim();
+              const cell1 = String(row[colName] !== undefined ? row[colName] : '').trim();
+              const rawPrice = row[colPrice] !== undefined ? String(row[colPrice]).replace(/[^\d]/g, '') : '';
+              const cellQty = row[colQty] !== undefined ? String(row[colQty]).trim() : '';
+
+              const isRoman0 = /^([IVXLCDM]+)[\.\:\s-]*$/i.test(cell0);
+              const isCatPattern = /^(mục|phần|nhóm)\s+([IVXLCDM\d]+)[\.\:\s-]*(.*)/i.exec(cell1 || cell0);
+              const hasNoPrice = !rawPrice;
+
+              if (isRoman0 || isCatPattern || (hasNoPrice && (cell1 || cell0) && !/tổng\s+cộng/i.test(cell1 || cell0))) {
+                let code = isRoman0 ? cell0.replace(/[\.\:\s-]/g, '') : (currentCat ? (categories.length + 1).toString() : 'I');
+                let name = cell1 || cell0;
+                if (isCatPattern) {
+                  code = isCatPattern[2];
+                  name = isCatPattern[3] || name;
+                }
+                currentCat = { id: generateId('cat'), code: code, name: name.toUpperCase(), items: [] };
+                categories.push(currentCat);
+              } else {
+                const itemName = cell1 || cell0;
+                if (!itemName || /tổng\s+cộng/i.test(itemName)) continue;
+
+                if (!currentCat) {
+                  currentCat = { id: generateId('cat'), code: 'I', name: 'DANH MỤC SÁCH GIÁO KHOA', items: [] };
+                  categories.push(currentCat);
+                }
+                const priceNum = rawPrice ? parseInt(rawPrice, 10) : 0;
+                currentCat.items.push({
+                  id: generateId('item'),
+                  name: itemName,
+                  price: priceNum,
+                  quantity: cellQty
+                });
+                totalImportedItems++;
+              }
+            }
+
+            if (categories.length === 0 || totalImportedItems === 0) {
+              showToast('Không tìm thấy danh mục sách hợp lệ trong file Excel!', 'error');
+              return;
+            }
+
+            // Apply directly to the active class form
+            const form = getActiveForm();
+            if (schoolName) form.schoolName = schoolName;
+            if (mainTitle) form.mainTitle = mainTitle;
+            if (subTitle) form.subTitle = subTitle;
+            form.categories = categories;
+
+            saveState();
+            renderFullUI();
+            showToast(`✅ Đã nhập thành công ${categories.length} nhóm & ${totalImportedItems} đầu sách vào ${form.name}!`, 'success');
+          } catch (err) {
+            console.error('Lỗi đọc Excel:', err);
+            showToast('Lỗi khi đọc file Excel: ' + err.message, 'error');
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
+
+      // --- EVENTS SETUP ---
+      function setupEvents() {
+        // --- XỬ LÝ TẢI ẢNH CHỮ KÝ / CON DẤU ---
+        const ownerSigUploadInput = document.getElementById('ownerSigUploadInput');
+        const btnUploadSigImg = document.getElementById('btnUploadSigImg');
+        const btnRemoveSigImg = document.getElementById('btnRemoveSigImg');
+        const sigImgPreviewBox = document.getElementById('sigImgPreviewBox');
+        const sigImgPreview = document.getElementById('sigImgPreview');
+
+        function updateSigPreviewUI() {
+          if (!btnRemoveSigImg || !sigImgPreviewBox || !sigImgPreview) return;
+          if (appData.ownerSignatureImg) {
+            sigImgPreview.src = appData.ownerSignatureImg;
+            sigImgPreviewBox.style.display = 'block';
+            btnRemoveSigImg.style.display = 'block';
+            if (btnUploadSigImg) btnUploadSigImg.textContent = '🔄 Đổi ảnh chữ ký';
+          } else {
+            sigImgPreviewBox.style.display = 'none';
+            btnRemoveSigImg.style.display = 'none';
+            if (btnUploadSigImg) btnUploadSigImg.textContent = '📷 Tải ảnh chữ ký / con dấu';
+          }
+        }
+
+        if (btnUploadSigImg && ownerSigUploadInput) {
+          btnUploadSigImg.addEventListener('click', () => ownerSigUploadInput.click());
+        }
+
+        if (ownerSigUploadInput) {
+          ownerSigUploadInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              appData.ownerSignatureImg = event.target.result;
+              saveState();
+              renderSheet();
+              setupInlineEditing();
+              updateSigPreviewUI();
+              showToast('✅ Đã tải ảnh chữ ký / con dấu thành công!', 'success');
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+          });
+        }
+
+        if (btnRemoveSigImg) {
+          btnRemoveSigImg.addEventListener('click', () => {
+            if (confirm('Bạn có chắc muốn xóa ảnh chữ ký / con dấu này?')) {
+              appData.ownerSignatureImg = '';
+              saveState();
+              renderSheet();
+              setupInlineEditing();
+              updateSigPreviewUI();
+              showToast('Đã xóa ảnh chữ ký', 'info');
+            }
+          });
+        }
+
+        // Khi in: Để tiêu đề document.title rỗng để trình duyệt không in dòng tiêu đề trùng lặp trên đầu trang
+        let originalPageTitle = document.title;
+        window.addEventListener('beforeprint', () => {
+          originalPageTitle = document.title;
+          document.title = ' ';
+        });
+        window.addEventListener('afterprint', () => {
+          document.title = originalPageTitle || 'PrintListBook (Lớp 1 - 12)';
+        });
+
+        // Toggle Right Sidebar
+        const toggleRightSidebar = () => {
+          appSidebarRight.classList.toggle('collapsed');
+        };
+        document.getElementById('btnToggleRightSidebar').addEventListener('click', toggleRightSidebar);
+        document.getElementById('btnCloseRightSidebar').addEventListener('click', toggleRightSidebar);
+
+        // Print Button
+        document.getElementById('btnPrint').addEventListener('click', () => {
+          window.print();
+        });
+
+        // Zoom Controls
+        const updateZoom = (val) => {
+          currentZoom = Math.min(Math.max(val, 0.5), 1.6);
+          paperWrapper.style.transform = `scale(${currentZoom})`;
+          zoomLevelDisplay.textContent = Math.round(currentZoom * 100) + '%';
+        };
+        document.getElementById('btnZoomIn').addEventListener('click', () => updateZoom(currentZoom + 0.1));
+        document.getElementById('btnZoomOut').addEventListener('click', () => updateZoom(currentZoom - 0.1));
+        document.getElementById('btnZoomReset').addEventListener('click', () => updateZoom(1.0));
+
+        // 1. Per-Class Standard Template: Save as Standard
+        document.getElementById('btnSetCurrentClassStandard').addEventListener('click', () => {
+          const form = getActiveForm();
+          const classKey = appData.activeClassKey;
+          appData.userStandardTemplates[classKey] = JSON.parse(JSON.stringify(form));
+          saveState();
+          showToast(`⭐ Đã lưu dữ liệu hiện tại làm Mẫu Chuẩn của ${form.name}!`, 'success');
+        });
+
+                // 1. Per-Class Standard Template: Reset to Standard
+        document.getElementById('btnResetCurrentClassStandard').addEventListener('click', () => {
+          const classKey = appData.activeClassKey;
+          const form = getActiveForm();
+          const std = appData.userStandardTemplates[classKey] || FACTORY_PRESETS[classKey];
+
+          if (confirm(`Bạn có chắc muốn khôi phục ${form.name} về lại Mẫu Chuẩn? Dữ liệu vừa nhập sai sẽ được hoàn tác.`)) {
+            appData.forms[classKey] = JSON.parse(JSON.stringify(std));
+            saveState();
+            renderFullUI();
+            showToast(`🔄 Đã khôi phục ${form.name} về Mẫu Chuẩn thành công!`, 'success');
+          }
+        });
+
+        // Nút Điền 1 vào ô trống trên thanh thu phóng
+        const btnFloatingFillQty1 = document.getElementById('btnFloatingFillQty1');
+        if (btnFloatingFillQty1) {
+          btnFloatingFillQty1.addEventListener('click', () => {
+            const form = getActiveForm();
+            let filledCount = 0;
+            let preservedCount = 0;
+
+            form.categories.forEach(cat => {
+              if (cat.items) {
+                cat.items.forEach(item => {
+                  const qStr = item.quantity !== undefined && item.quantity !== null ? String(item.quantity).trim() : '';
+                  if (qStr === '' || qStr === '0') {
+                    item.quantity = '1';
+                    filledCount++;
+                  } else {
+                    preservedCount++;
+                  }
+                });
+              }
+            });
+
+            // Nếu đang ghép xen kẽ A5, cũng điền cho phiếu bên phải
+            const isInterleaved = appData.printLayoutMode === 'a5-double' &&
+                                  appData.a5RightClassKey &&
+                                  appData.a5RightClassKey !== 'same' &&
+                                  appData.a5RightClassKey !== appData.activeClassKey &&
+                                  appData.forms[appData.a5RightClassKey];
+            if (isInterleaved) {
+              const rightForm = appData.forms[appData.a5RightClassKey];
+              rightForm.categories.forEach(cat => {
+                if (cat.items) {
+                  cat.items.forEach(item => {
+                    const qStr = item.quantity !== undefined && item.quantity !== null ? String(item.quantity).trim() : '';
+                    if (qStr === '' || qStr === '0') {
+                      item.quantity = '1';
+                      filledCount++;
+                    } else {
+                      preservedCount++;
+                    }
+                  });
+                }
+              });
+            }
+
+            if (filledCount > 0) {
+              saveState();
+              renderSheet();
+              setupInlineEditing();
+              showToast(`⚡ Đã tự động điền 1 vào ${filledCount} ô sách còn trống! (Giữ nguyên ${preservedCount} ô đã có số)`, 'success');
+            } else {
+              showToast(`Tất cả các dòng sách đều đã có số lượng.`, 'info');
+            }
+          });
+        }
+
+        // --- CÁC SỰ KIỆN CHO MODAL GHÉP XEN KẼ KHỐI LỚP (A5) ---
+        const btnOpenInterleaveModal = document.getElementById('btnOpenInterleaveModal');
+        const interleaveModal = document.getElementById('interleaveModal');
+        const btnCloseInterleaveModal = document.getElementById('btnCloseInterleaveModal');
+        const btnCancelInterleaveModal = document.getElementById('btnCancelInterleaveModal');
+        const btnApplyInterleave = document.getElementById('btnApplyInterleave');
+        const btnSwapInterleave = document.getElementById('btnSwapInterleave');
+        const selectInterleaveLeft = document.getElementById('selectInterleaveLeft');
+        const selectInterleaveRight = document.getElementById('selectInterleaveRight');
+        const quickPairButtonsContainer = document.getElementById('quickPairButtonsContainer');
+
+        function populateInterleaveSelects() {
+          if (!selectInterleaveLeft || !selectInterleaveRight) return;
+          const classKeys = Object.keys(appData.forms);
+
+          selectInterleaveLeft.innerHTML = classKeys.map(k => {
+            const f = appData.forms[k];
+            const sel = (k === appData.activeClassKey) ? 'selected' : '';
+            const totalCount = f.categories.reduce((acc, c) => acc + (c.items ? c.items.length : 0), 0);
+            return `<option value="${k}" ${sel}>${f.name} (${totalCount} sách)</option>`;
+          }).join('');
+
+          let rightOptionsHtml = `<option value="same" ${(appData.a5RightClassKey === 'same' || !appData.a5RightClassKey) ? 'selected' : ''}>🔄 Nhân đôi cùng lớp (Mặc định)</option>`;
+          rightOptionsHtml += classKeys.map(k => {
+            const f = appData.forms[k];
+            const sel = (k === appData.a5RightClassKey && appData.a5RightClassKey !== 'same') ? 'selected' : '';
+            const totalCount = f.categories.reduce((acc, c) => acc + (c.items ? c.items.length : 0), 0);
+            return `<option value="${k}" ${sel}>${f.name} (${totalCount} sách)</option>`;
+          }).join('');
+          selectInterleaveRight.innerHTML = rightOptionsHtml;
+        }
+
+        if (btnOpenInterleaveModal) {
+          btnOpenInterleaveModal.addEventListener('click', () => {
+            populateInterleaveSelects();
+            if (interleaveModal) interleaveModal.style.display = 'flex';
+          });
+        }
+
+        if (btnCloseInterleaveModal) {
+          btnCloseInterleaveModal.addEventListener('click', () => {
+            if (interleaveModal) interleaveModal.style.display = 'none';
+          });
+        }
+
+        if (btnCancelInterleaveModal) {
+          btnCancelInterleaveModal.addEventListener('click', () => {
+            if (interleaveModal) interleaveModal.style.display = 'none';
+          });
+        }
+
+        if (interleaveModal) {
+          interleaveModal.addEventListener('click', (e) => {
+            if (e.target === interleaveModal) interleaveModal.style.display = 'none';
+          });
+        }
+
+        if (btnSwapInterleave) {
+          btnSwapInterleave.addEventListener('click', () => {
+            const lVal = selectInterleaveLeft.value;
+            const rVal = selectInterleaveRight.value;
+            if (rVal !== 'same') {
+              selectInterleaveLeft.value = rVal;
+              selectInterleaveRight.value = lVal;
+            } else {
+              showToast('Chọn 2 lớp khác nhau để đảo vị trí', 'info');
+            }
+          });
+        }
+
+        if (quickPairButtonsContainer) {
+          quickPairButtonsContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('.quick-pair-btn');
+            if (!btn) return;
+            const leftTarget = btn.getAttribute('data-left');
+            const rightTarget = btn.getAttribute('data-right');
+            if (leftTarget === 'same') {
+              selectInterleaveRight.value = 'same';
+            } else {
+              if (selectInterleaveLeft && appData.forms[leftTarget]) selectInterleaveLeft.value = leftTarget;
+              if (selectInterleaveRight && appData.forms[rightTarget]) selectInterleaveRight.value = rightTarget;
+            }
+          });
+        }
+
+        if (btnApplyInterleave) {
+          btnApplyInterleave.addEventListener('click', () => {
+            const leftKey = selectInterleaveLeft.value;
+            const rightKey = selectInterleaveRight.value;
+
+            appData.activeClassKey = leftKey;
+            appData.a5RightClassKey = rightKey;
+            // Tự động chuyển về dạng A5 theo yêu cầu người dùng
+            appData.printLayoutMode = 'a5-double';
+            if (printLayoutModeSelect) printLayoutModeSelect.value = 'a5-double';
+            if (headerLayoutModeSelect) headerLayoutModeSelect.value = 'a5-double';
+
+            saveState();
+            renderFullUI();
+
+            if (interleaveModal) interleaveModal.style.display = 'none';
+
+            const leftName = appData.forms[leftKey] ? appData.forms[leftKey].name : leftKey;
+            const rightName = (rightKey === 'same' || rightKey === leftKey) ? leftName : (appData.forms[rightKey] ? appData.forms[rightKey].name : rightKey);
+
+            if (rightKey === 'same' || rightKey === leftKey) {
+              showToast(`📄📄 Đã chuyển sang Khổ A5 (Nhân đôi ${leftName})`, 'success');
+            } else {
+              showToast(`🔀 Đã ghép xen kẽ: ${leftName} + ${rightName} (Khổ A5)`, 'success');
+            }
+          });
+        }
+
+        // 5. Layout Mode: A4 Single vs A5 Double on A4 (Đồng bộ giữa Header và Thanh bên phải)
+        function handleLayoutModeChange(val) {
+          appData.printLayoutMode = val;
+          if (printLayoutModeSelect) printLayoutModeSelect.value = val;
+          if (headerLayoutModeSelect) headerLayoutModeSelect.value = val;
+          saveState();
+          renderSheet();
+          setupInlineEditing();
+          showToast(val === 'a5-double' ? 'Đã chuyển sang: 2 phiếu A5 trên 1 trang A4' : 'Đã chuyển sang: Khổ A4 đơn', 'info');
+        }
+
+        if (printLayoutModeSelect) {
+          printLayoutModeSelect.addEventListener('change', (e) => handleLayoutModeChange(e.target.value));
+        }
+        if (headerLayoutModeSelect) {
+          headerLayoutModeSelect.addEventListener('change', (e) => handleLayoutModeChange(e.target.value));
+        }
+
+
+
+        // Right Sidebar Settings Handlers
+        sttNumberingMode.addEventListener('change', (e) => {
+          const form = getActiveForm();
+          form.numberingMode = e.target.value;
+          saveState();
+          renderSheet();
+          setupInlineEditing();
+        });
+
+        quantityPrintMode.addEventListener('change', (e) => {
+          const form = getActiveForm();
+          form.quantityPrintMode = e.target.value;
+          saveState();
+          renderSheet();
+          setupInlineEditing();
+        });
+
+        chkShowTotalRow.addEventListener('change', (e) => {
+          const form = getActiveForm();
+          form.showTotalRow = e.target.checked;
+          if (isInterleavedMode() && appData.forms[appData.a5RightClassKey]) {
+            appData.forms[appData.a5RightClassKey].showTotalRow = e.target.checked;
+          }
+          saveState();
+          renderSheet();
+          setupInlineEditing();
+        });
+
+        chkShowSubtotalCol.addEventListener('change', (e) => {
+          const form = getActiveForm();
+          form.showSubtotalCol = e.target.checked;
+          if (isInterleavedMode() && appData.forms[appData.a5RightClassKey]) {
+            appData.forms[appData.a5RightClassKey].showSubtotalCol = e.target.checked;
+          }
+          saveState();
+          renderSheet();
+          setupInlineEditing();
+        });
+
+        chkShowSignSection.addEventListener('change', (e) => {
+          const form = getActiveForm();
+          form.showSignSection = e.target.checked;
+          if (isInterleavedMode() && appData.forms[appData.a5RightClassKey]) {
+            appData.forms[appData.a5RightClassKey].showSignSection = e.target.checked;
+          }
+          saveState();
+          renderSheet();
+          setupInlineEditing();
+        });
+
+        if (selectTableDensity) {
+          selectTableDensity.addEventListener('change', (e) => {
+            const form = getActiveForm();
+            form.tableDensity = e.target.value;
+            saveState();
+            renderSheet();
+            setupInlineEditing();
+          });
+        }
+
+        if (chkShowRuler) {
+          chkShowRuler.addEventListener('change', (e) => {
+            appData.showRuler = e.target.checked;
+            saveState();
+            updatePageRulerAndOverflow();
+          });
+        }
+
+        // Excel Import
+        document.getElementById('importExcelInput').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            handleExcelFile(file);
+          }
+          e.target.value = '';
+        });
+
+        // JSON Backup & Restore
+        document.getElementById('btnExportJson').addEventListener('click', () => {
+          const jsonStr = JSON.stringify(appData, null, 2);
+          const blob = new Blob([jsonStr], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+          a.href = url;
+          a.download = `phieu_dang_ky_sach_12_lop_backup_${dateStr}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('Đã tải file sao lưu JSON về máy', 'success');
+        });
+
+        document.getElementById('importJsonInput').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            try {
+              const imported = JSON.parse(event.target.result);
+              if (imported && imported.forms && typeof imported.forms === 'object') {
+                appData = imported;
+                saveState();
+                renderFullUI();
+                showToast('Khôi phục dữ liệu từ JSON thành công!', 'success');
+              } else {
+                throw new Error('Cấu trúc file JSON không hợp lệ');
+              }
+            } catch (err) {
+              console.error(err);
+              showToast('Lỗi: File JSON không đúng định dạng!', 'error');
+            }
+          };
+          reader.readAsText(file);
+          e.target.value = '';
+        });
+      }
+
+      // --- VERTICAL A4 RULER & REAL-TIME PAGE OVERFLOW ENGINE ---
+      function updatePageRulerAndOverflow() {
+        const paperContainer = document.getElementById('paperContainer');
+        const rulerSvg = document.getElementById('rulerSvg');
+        const pageOverflowGuide = document.getElementById('pageOverflowGuide');
+        const overflowToolbarPill = document.getElementById('pageOverflowToolbarPill');
+        const paperRulerContainer = document.getElementById('paperRulerContainer');
+
+        if (!paperContainer || !rulerSvg) return;
+
+        // Check if ruler is disabled in settings
+        if (appData.showRuler === false) {
+          if (paperRulerContainer) paperRulerContainer.classList.add('hidden');
+        } else {
+          if (paperRulerContainer) paperRulerContainer.classList.remove('hidden');
+        }
+
+        const isA5Double = appData.printLayoutMode === 'a5-double';
+        // A4 landscape: height is 210mm.
+        // A4 portrait: height is 297mm.
+        const limitMm = isA5Double ? 210 : 297;
+        const mmToPx = 3.779527559;
+        const limitPx = Math.round(limitMm * mmToPx);
+
+        // Measure actual content height
+        const currentHeightPx = paperContainer.scrollHeight || paperContainer.offsetHeight;
+        const currentHeightMm = Math.round(currentHeightPx / mmToPx);
+        const currentHeightCm = (currentHeightMm / 10).toFixed(1);
+        const limitCm = (limitMm / 10).toFixed(1);
+
+        // Tolerance of 4px
+        const isOverflow = currentHeightPx > (limitPx + 4);
+        const overflowMm = Math.max(0, currentHeightMm - limitMm);
+
+        // 1. Update Overflow Guide line on paper
+        if (pageOverflowGuide) {
+          if (isOverflow) {
+            pageOverflowGuide.style.display = 'block';
+            pageOverflowGuide.style.top = limitPx + 'px';
+            const badgeTitle = pageOverflowGuide.querySelector('.overflow-guide-text');
+            if (badgeTitle) {
+              badgeTitle.textContent = `⚠️ GIỚI HẠN 1 TRANG A4 (${limitCm}cm) - ĐÃ TRÀN +${overflowMm}mm SANG TRANG 2`;
+            }
+          } else {
+            pageOverflowGuide.style.display = 'none';
+          }
+        }
+
+        // 2. Update Floating Toolbar status pill
+        if (overflowToolbarPill) {
+          if (isOverflow) {
+            overflowToolbarPill.innerHTML = `
+              <span class="page-fit-pill fit-overflow" title="Nội dung cao ${currentHeightCm}cm vượt quá ${limitCm}cm. Sẽ in thành 2 tờ giấy!">
+                ⚠️ Tràn khung (+${overflowMm}mm)
+              </span>
+              <button class="btn btn-sm btn-outline" style="color: #b91c1c; border-color: #fca5a5; background: #fff;" onclick="window.appHandlers.toggleAutoFit()" title="Tự động thu gọn khoảng cách để co vừa vào 1 trang">
+                ⚡ Co vừa 1 trang
+              </button>
+            `;
+          } else {
+            const form = getActiveForm();
+            const isCompact = form.tableDensity === 'compact';
+            overflowToolbarPill.innerHTML = `
+              <span class="page-fit-pill fit-ok" title="Nội dung cao ${currentHeightCm}cm nằm trọn trong 1 trang A4 (${limitCm}cm).">
+                ✅ Vừa 1 trang A4 (${currentHeightCm}cm)
+              </span>
+              ${isCompact ? `
+              <button class="btn btn-xs btn-outline" onclick="window.appHandlers.toggleAutoFit()" title="Đang ở chế độ thu gọn. Bấm để trả về mật độ chuẩn">
+                Chuẩn hóa
+              </button>` : ''}
+            `;
+          }
+        }
+
+        // 3. Draw SVG Ruler
+        const totalHeightPx = Math.max(currentHeightPx + 40, limitPx + 40);
+        rulerSvg.setAttribute('height', totalHeightPx);
+        rulerSvg.setAttribute('width', '38');
+
+        let svgHtml = `
+          <defs>
+            <pattern id="overflowPattern" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="6" stroke="#fee2e2" stroke-width="2" />
+            </pattern>
+          </defs>
+          <!-- Background -->
+          <rect x="0" y="0" width="38" height="${totalHeightPx}" fill="#f8fafc" />
+        `;
+
+        // Draw overflow red zone on ruler if overflowing
+        if (totalHeightPx > limitPx) {
+          svgHtml += `
+            <rect x="0" y="${limitPx}" width="38" height="${totalHeightPx - limitPx}" fill="url(#overflowPattern)" />
+            <rect x="0" y="${limitPx}" width="38" height="${totalHeightPx - limitPx}" fill="rgba(239, 68, 68, 0.06)" />
+          `;
+        }
+
+        // Generate ticks every mm and cm
+        const maxMm = Math.ceil(totalHeightPx / mmToPx);
+        for (let mm = 0; mm <= maxMm; mm++) {
+          const y = Math.round(mm * mmToPx);
+          if (mm % 10 === 0) {
+            // Centimeter major tick
+            const cm = mm / 10;
+            const isLimitCm = mm === limitMm;
+            svgHtml += `
+              <line x1="16" y1="${y}" x2="38" y2="${y}" stroke="${isLimitCm ? '#dc2626' : '#64748b'}" stroke-width="${isLimitCm ? 2 : 1.2}" />
+              <text x="12" y="${y + 3}" font-size="8.5" font-weight="${isLimitCm ? 'bold' : 'normal'}" fill="${isLimitCm ? '#dc2626' : '#64748b'}" text-anchor="end" font-family="-apple-system, sans-serif">${cm}</text>
+            `;
+          } else if (mm % 5 === 0) {
+            // Half centimeter tick
+            svgHtml += `<line x1="22" y1="${y}" x2="38" y2="${y}" stroke="#94a3b8" stroke-width="1" />`;
+          } else if (mm % 2 === 0) {
+            // 2mm tick
+            svgHtml += `<line x1="28" y1="${y}" x2="38" y2="${y}" stroke="#cbd5e1" stroke-width="0.8" />`;
+          }
+        }
+
+        // Limit Indicator on Ruler
+        svgHtml += `
+          <!-- A4 Limit Marker -->
+          <line x1="0" y1="${limitPx}" x2="38" y2="${limitPx}" stroke="#dc2626" stroke-width="2.5" />
+          <polygon points="38,${limitPx} 30,${limitPx - 4} 30,${limitPx + 4}" fill="#dc2626" />
+          <rect x="1" y="${limitPx - 13}" width="36" height="12" rx="2" fill="#dc2626" />
+          <text x="19" y="${limitPx - 4}" font-size="7.5" font-weight="bold" fill="#ffffff" text-anchor="middle" font-family="-apple-system, sans-serif">GIỚI HẠN</text>
+        `;
+
+        // Current Content Height Marker on Ruler
+        if (currentHeightPx > 0) {
+          const markerColor = isOverflow ? '#dc2626' : '#16a34a';
+          svgHtml += `
+            <line x1="0" y1="${currentHeightPx}" x2="38" y2="${currentHeightPx}" stroke="${markerColor}" stroke-width="1.8" stroke-dasharray="2 1" />
+            <polygon points="0,${currentHeightPx} 6,${currentHeightPx - 3} 6,${currentHeightPx + 3}" fill="${markerColor}" />
+          `;
+        }
+
+        rulerSvg.innerHTML = svgHtml;
+      }
+
+      // --- LEFT SIDEBAR RESIZE & DYNAMIC FONT SCALING ---
+      function setupSidebarLeftResizer() {
+        const resizer = document.getElementById('sidebarLeftResizer');
+        if (!resizer) return;
+
+        const MIN_WIDTH = 140;
+        const MAX_WIDTH = 450;
+        const DEFAULT_WIDTH = 210;
+
+        function applyWidth(width, persist = false) {
+          const clamped = Math.min(Math.max(Math.round(width), MIN_WIDTH), MAX_WIDTH);
+          const ratio = (clamped - MIN_WIDTH) / (MAX_WIDTH - MIN_WIDTH); // 0.0 to 1.0
+
+          // Proportional font and spacing interpolation:
+          // Width 140px: 0.75rem (~12px), title 0.70rem, badge 0.60rem
+          // Width 210px: 0.88rem (~14px, Standard Default), title 0.75rem, badge 0.68rem
+          // Width 320px: 1.12rem (~18px), title 0.86rem, badge 0.82rem
+          // Width 450px: 1.42rem (~22.7px), title 0.98rem, badge 0.96rem
+          const fontSize = (0.75 + ratio * (1.42 - 0.75)).toFixed(3);
+          const badgeSize = (0.60 + ratio * (0.96 - 0.60)).toFixed(3);
+          const titleSize = (0.70 + ratio * (0.98 - 0.70)).toFixed(3);
+          const padY = (0.35 + ratio * (0.85 - 0.35)).toFixed(3);
+          const padX = (0.50 + ratio * (1.10 - 0.50)).toFixed(3);
+
+          document.documentElement.style.setProperty('--sidebar-left-width', clamped + 'px');
+          document.documentElement.style.setProperty('--sidebar-left-font-size', fontSize + 'rem');
+          document.documentElement.style.setProperty('--sidebar-left-badge-size', badgeSize + 'rem');
+          document.documentElement.style.setProperty('--sidebar-left-title-size', titleSize + 'rem');
+          document.documentElement.style.setProperty('--sidebar-left-item-padding', `${padY}rem ${padX}rem`);
+
+          if (persist) {
+            try {
+              localStorage.setItem('printListBook_sidebarLeftWidth', clamped.toString());
+            } catch (err) {}
+          }
+        }
+
+        // Restore saved width from localStorage
+        try {
+          const saved = localStorage.getItem('printListBook_sidebarLeftWidth');
+          if (saved) {
+            applyWidth(parseInt(saved, 10), false);
+          } else {
+            applyWidth(DEFAULT_WIDTH, false);
+          }
+        } catch (e) {
+          applyWidth(DEFAULT_WIDTH, false);
+        }
+
+        let isDragging = false;
+        let startX = 0;
+        let startWidth = DEFAULT_WIDTH;
+
+        function onPointerDown(clientX) {
+          isDragging = true;
+          startX = clientX;
+          const currentW = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-left-width'), 10) || DEFAULT_WIDTH;
+          startWidth = currentW;
+          resizer.classList.add('is-dragging');
+          document.body.style.cursor = 'col-resize';
+          document.body.style.userSelect = 'none';
+        }
+
+        function onPointerMove(clientX) {
+          if (!isDragging) return;
+          const deltaX = clientX - startX;
+          const newWidth = startWidth + deltaX;
+          applyWidth(newWidth, false);
+        }
+
+        function onPointerUp() {
+          if (!isDragging) return;
+          isDragging = false;
+          resizer.classList.remove('is-dragging');
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+          const finalW = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-left-width'), 10) || DEFAULT_WIDTH;
+          applyWidth(finalW, true);
+        }
+
+        // Mouse events
+        resizer.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          onPointerDown(e.clientX);
+
+          const onMouseMove = (ev) => onPointerMove(ev.clientX);
+          const onMouseUp = () => {
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+            onPointerUp();
+          };
+
+          window.addEventListener('mousemove', onMouseMove);
+          window.addEventListener('mouseup', onMouseUp);
+        });
+
+        // Touch events
+        resizer.addEventListener('touchstart', (e) => {
+          if (e.touches && e.touches.length > 0) {
+            onPointerDown(e.touches[0].clientX);
+          }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+          if (isDragging && e.touches && e.touches.length > 0) {
+            onPointerMove(e.touches[0].clientX);
+          }
+        }, { passive: true });
+
+        window.addEventListener('touchend', () => {
+          if (isDragging) onPointerUp();
+        });
+        window.addEventListener('touchcancel', () => {
+          if (isDragging) onPointerUp();
+        });
+
+        // Double-click to reset to default
+        resizer.addEventListener('dblclick', () => {
+          applyWidth(DEFAULT_WIDTH, true);
+          showToast('Đã đặt lại kích thước thanh bên về mặc định (210px)!', 'info');
+        });
+      }
+
+      // --- WORKSPACE CANVAS PANNING (DRAG TO MOVE A4 PAPER) ---
+      function setupWorkspacePanning() {
+        const workspace = document.getElementById('appWorkspace');
+        if (!workspace) return;
+
+        let isPanning = false;
+        let startX = 0;
+        let startY = 0;
+        let scrollLeftStart = 0;
+        let scrollTopStart = 0;
+
+        workspace.addEventListener('mousedown', (e) => {
+          // Do not initiate pan if clicking inside editable cells, inputs, selects, buttons, or floating bars
+          const target = e.target;
+          if (
+            target.closest('button') ||
+            target.closest('input') ||
+            target.closest('select') ||
+            target.closest('[contenteditable="true"]') ||
+            target.closest('.row-action-handle') ||
+            target.closest('.workspace-floating-bar') ||
+            target.closest('.sidebar-resizer')
+          ) {
+            return;
+          }
+
+          // Only left click (button 0) or middle click (button 1)
+          if (e.button !== 0 && e.button !== 1) return;
+
+          isPanning = true;
+          startX = e.clientX;
+          startY = e.clientY;
+          scrollLeftStart = workspace.scrollLeft;
+          scrollTopStart = workspace.scrollTop;
+          workspace.style.cursor = 'grabbing';
+          workspace.style.userSelect = 'none';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (!isPanning) return;
+          const deltaX = e.clientX - startX;
+          const deltaY = e.clientY - startY;
+          workspace.scrollLeft = scrollLeftStart - deltaX;
+          workspace.scrollTop = scrollTopStart - deltaY;
+        });
+
+        const stopPanning = () => {
+          if (!isPanning) return;
+          isPanning = false;
+          workspace.style.cursor = '';
+          workspace.style.userSelect = '';
+        };
+
+        window.addEventListener('mouseup', stopPanning);
+      }
+
+      // --- INITIALIZATION ---
+      function init() {
+        loadState();
+        renderFullUI();
+        setupEvents();
+        setupSidebarLeftResizer();
+        setupWorkspacePanning();
+        window.addEventListener('resize', () => {
+          updatePageRulerAndOverflow();
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+    })();
+  </script>
+</body>
+</html>
