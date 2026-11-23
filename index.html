@@ -1149,7 +1149,8 @@
        ========================================================= */
     .row-action-handle {
       position: absolute;
-      right: -36px;
+      left: 4px;
+      right: auto;
       top: 50%;
       transform: translateY(-50%);
       display: flex;
@@ -1167,9 +1168,43 @@
       user-select: none;
     }
 
+    .row-category .row-action-handle {
+      left: auto;
+      right: 6px;
+    }
+
     tr:hover .row-action-handle {
       opacity: 1;
       pointer-events: auto;
+    }
+
+    /* Đảm bảo thanh thao tác không che khuất ô nhập ĐƠN GIÁ, SL, THÀNH TIỀN khi người dùng rê chuột hoặc nhập số */
+    tr:has(td.col-price:hover) .row-action-handle,
+    tr:has(td.col-qty:hover) .row-action-handle,
+    tr:has(td.col-subtotal:hover) .row-action-handle,
+    tr:has(td.col-price:focus-within) .row-action-handle,
+    tr:has(td.col-qty:focus-within) .row-action-handle {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    .a5-half-page .row-item .row-action-handle {
+      left: 2px !important;
+      right: auto !important;
+      background: rgba(255, 255, 255, 0.96) !important;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18) !important;
+      z-index: 30 !important;
+    }
+
+    .school-name-box,
+    .main-title,
+    .sub-title,
+    .grade-class,
+    .phieu-note,
+    .sign-date,
+    .sign-title,
+    .corner-sig-text {
+      min-height: 1.2em;
     }
 
     .handle-btn {
@@ -2626,6 +2661,13 @@
 
       function showToast(message, type = 'info') {
         const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        // Giới hạn tối đa 3 thông báo cùng lúc để tránh che màn hình
+        while (container.children.length >= 3) {
+          container.removeChild(container.firstChild);
+        }
+
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         
@@ -2782,6 +2824,9 @@
             <span class="class-nav-badge">${totalBooks} sách</span>
           `;
           item.onclick = () => {
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+              document.activeElement.blur();
+            }
             if (appData.activeClassKey !== classKey || (appData.a5RightClassKey && appData.a5RightClassKey !== 'same')) {
               appData.activeClassKey = classKey;
               appData.a5RightClassKey = 'same';
@@ -2822,7 +2867,7 @@
       }
 
       // 3. Render HTML Table Fragment for a Form
-      function generateFormHtml(form, isMirrorCopy = false) {
+      function generateFormHtml(form, isMirrorCopy = false, targetSlip = 'left') {
         const showSubtotalCol = form.showSubtotalCol === true;
         const totals = calculateFormTotals(form);
         const totalColSpan = showSubtotalCol ? 4 : 3;
@@ -2850,16 +2895,16 @@
                 </div>
                 ${isMirrorCopy ? '' : `
                 <div class="row-action-handle no-print" contenteditable="false">
-                  <button class="handle-btn" title="Thêm sách vào nhóm này" onclick="window.appHandlers.addItemToCat(${catIdx})">
+                  <button class="handle-btn" title="Thêm sách vào nhóm này" onclick="window.appHandlers.addItemToCat(${catIdx}, '${targetSlip}')">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                   </button>
-                  <button class="handle-btn" title="Di chuyển nhóm lên" onclick="window.appHandlers.moveCategory(${catIdx}, -1)">
+                  <button class="handle-btn" title="Di chuyển nhóm lên" onclick="window.appHandlers.moveCategory(${catIdx}, -1, '${targetSlip}')">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
                   </button>
-                  <button class="handle-btn" title="Di chuyển nhóm xuống" onclick="window.appHandlers.moveCategory(${catIdx}, 1)">
+                  <button class="handle-btn" title="Di chuyển nhóm xuống" onclick="window.appHandlers.moveCategory(${catIdx}, 1, '${targetSlip}')">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                   </button>
-                  <button class="handle-btn danger" title="Xóa nhóm này" onclick="window.appHandlers.deleteCategory(${catIdx})">
+                  <button class="handle-btn danger" title="Xóa nhóm này" onclick="window.appHandlers.deleteCategory(${catIdx}, '${targetSlip}')">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                   </button>
                 </div>`}
@@ -2889,16 +2934,16 @@
                     </div>
                     ${isMirrorCopy ? '' : `
                     <div class="row-action-handle no-print" contenteditable="false">
-                      <button class="handle-btn" title="Thêm sách bên dưới" onclick="window.appHandlers.insertItemBelow(${catIdx}, ${itemIdx})">
+                      <button class="handle-btn" title="Thêm sách bên dưới" onclick="window.appHandlers.insertItemBelow(${catIdx}, ${itemIdx}, '${targetSlip}')">
                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                       </button>
-                      <button class="handle-btn" title="Chuyển lên" onclick="window.appHandlers.moveItem(${catIdx}, ${itemIdx}, -1)">
+                      <button class="handle-btn" title="Chuyển lên" onclick="window.appHandlers.moveItem(${catIdx}, ${itemIdx}, -1, '${targetSlip}')">
                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
                       </button>
-                      <button class="handle-btn" title="Chuyển xuống" onclick="window.appHandlers.moveItem(${catIdx}, ${itemIdx}, 1)">
+                      <button class="handle-btn" title="Chuyển xuống" onclick="window.appHandlers.moveItem(${catIdx}, ${itemIdx}, 1, '${targetSlip}')">
                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                       </button>
-                      <button class="handle-btn danger" title="Xóa dòng này" onclick="window.appHandlers.deleteItem(${catIdx}, ${itemIdx})">
+                      <button class="handle-btn danger" title="Xóa dòng này" onclick="window.appHandlers.deleteItem(${catIdx}, ${itemIdx}, '${targetSlip}')">
                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                       </button>
                     </div>`}
@@ -2944,11 +2989,17 @@
         }
 
         let cornerSig = form.cornerSignature;
-        if (!cornerSig || (cornerSig.includes('Lớp ') && form.name && !cornerSig.includes(form.name))) {
+        if (cornerSig === undefined || cornerSig === null || (cornerSig.includes('Lớp ') && form.name && !cornerSig.includes(form.name))) {
           cornerSig = 'VPP Thanh Tâm - ' + (form.name || '');
           form.cornerSignature = cornerSig;
         }
-        const signTitleVal = form.signTitle || 'CHỦ CỬA HÀNG';
+        const signTitleVal = (form.signTitle !== undefined && form.signTitle !== null) ? form.signTitle : 'CHỦ CỬA HÀNG';
+        const schoolNameVal = (form.schoolName !== undefined && form.schoolName !== null) ? form.schoolName : 'TRƯỜNG TIỂU HỌC PHÚ DIỄN';
+        const mainTitleVal = (form.mainTitle !== undefined && form.mainTitle !== null) ? form.mainTitle : 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC';
+        const subTitleVal = (form.subTitle !== undefined && form.subTitle !== null) ? form.subTitle : '';
+        const gradeClassVal = (form.gradeClass !== undefined && form.gradeClass !== null) ? form.gradeClass : 'Lớp:......';
+        const noteVal = (form.note !== undefined && form.note !== null) ? form.note : '* Ghi chú: Đánh dấu hoặc ghi số lượng vào các đầu sách cần đăng ký và gửi lại.';
+        const signDateVal = (form.signDate !== undefined && form.signDate !== null) ? form.signDate : 'Ngày ...... tháng ...... năm 20...';
 
         return `
           <!-- Dòng thông tin góc phải tờ giấy (signature/branding theo yêu cầu) -->
@@ -2962,21 +3013,21 @@
           <div class="phieu-header">
             <div class="phieu-top-row">
               <div class="school-name-box" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="school-name"'} spellcheck="false">
-                ${escapeHtml(form.schoolName || 'TRƯỜNG TIỂU HỌC PHÚ DIỄN')}
+                ${escapeHtml(schoolNameVal)}
               </div>
             </div>
 
             <div class="phieu-title-center">
               <div class="main-title" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="main-title"'} spellcheck="false">
-                ${escapeHtml(form.mainTitle || 'ĐĂNG KÍ MUA SÁCH VÀ CÁC SẢN PHẨM GIÁO DỤC')}
+                ${escapeHtml(mainTitleVal)}
               </div>
               
               <div class="sub-title" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="sub-title"'} spellcheck="false">
-                ${escapeHtml(form.subTitle || '')}
+                ${escapeHtml(subTitleVal)}
               </div>
               
               <div class="grade-class" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="grade-class"'} spellcheck="false">
-                ${escapeHtml(form.gradeClass || 'Lớp:......')}
+                ${escapeHtml(gradeClassVal)}
               </div>
             </div>
           </div>
@@ -3005,14 +3056,14 @@
           <!-- Footer hành chính -->
           <div class="phieu-footer">
             <div class="phieu-note" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="note"'} spellcheck="false">
-              ${escapeHtml(form.note || '* Ghi chú: Đánh dấu hoặc ghi số lượng vào các đầu sách cần đăng ký và gửi lại.')}
+              ${escapeHtml(noteVal)}
             </div>
 
             ${form.showSignSection !== false ? `
             <div class="phieu-sign-row">
               <div class="phieu-sign-box">
                 <div class="sign-date" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="sign-date"'} spellcheck="false">
-                  ${escapeHtml(form.signDate || 'Ngày ...... tháng ...... năm 20...')}
+                  ${escapeHtml(signDateVal)}
                 </div>
                 <div class="sign-title" ${isMirrorCopy ? '' : 'contenteditable="true" data-type="sign-title"'} spellcheck="false">
                   ${escapeHtml(signTitleVal)}
@@ -3076,14 +3127,14 @@
           paperContainer.className = 'a5-dual-sheet' + (isCompact ? ' compact-density' : '');
           paperContainer.innerHTML = `
             <div class="a5-half-page a5-left" id="liveFormContainer">
-              ${generateFormHtml(leftForm, false)}
+              ${generateFormHtml(leftForm, false, 'left')}
             </div>
             <div class="a5-cut-divider">
               <div class="a5-cut-line"></div>
               
             </div>
             <div class="a5-half-page a5-right" id="mirrorFormContainer">
-              ${generateFormHtml(rightForm, !isInterleaved)}
+              ${generateFormHtml(rightForm, !isInterleaved, 'right')}
             </div>
           `;
         } else {
@@ -3099,7 +3150,7 @@
           paperContainer.className = 'a4-single-sheet' + (isCompact ? ' compact-density' : '');
           paperContainer.innerHTML = `
             <div id="liveFormContainer">
-              ${generateFormHtml(form, false)}
+              ${generateFormHtml(form, false, 'left')}
             </div>
           `;
         }
@@ -3188,9 +3239,7 @@
         function attachSlipEvents(container, getTargetForm, isRightSlip) {
           if (!container) return;
 
-          // Event Delegation for blur (editing any field)
-          container.addEventListener('blur', (e) => {
-            const target = e.target;
+          function handleFieldUpdate(target, isBlur) {
             const type = target.getAttribute('data-type');
             if (!type) return;
 
@@ -3218,22 +3267,24 @@
             } else if (type === 'sign-title') {
               f.signTitle = val;
             } else if (type === 'cat-code') {
-              if (f.categories[catIdx]) f.categories[catIdx].code = val;
+              if (f.categories && f.categories[catIdx]) f.categories[catIdx].code = val;
             } else if (type === 'cat-name') {
-              if (f.categories[catIdx]) f.categories[catIdx].name = val;
+              if (f.categories && f.categories[catIdx]) f.categories[catIdx].name = val;
             } else if (type === 'item-name') {
-              if (f.categories[catIdx] && f.categories[catIdx].items[itemIdx]) {
+              if (f.categories && f.categories[catIdx] && f.categories[catIdx].items && f.categories[catIdx].items[itemIdx]) {
                 f.categories[catIdx].items[itemIdx].name = val;
               }
             } else if (type === 'item-price') {
-              if (f.categories[catIdx] && f.categories[catIdx].items[itemIdx]) {
+              if (f.categories && f.categories[catIdx] && f.categories[catIdx].items && f.categories[catIdx].items[itemIdx]) {
                 const parsed = parseMoney(val);
                 f.categories[catIdx].items[itemIdx].price = parsed;
-                target.innerText = formatMoney(parsed);
+                if (isBlur) {
+                  target.innerText = formatMoney(parsed);
+                }
                 updateSlipTotals(container, f);
               }
             } else if (type === 'item-qty') {
-              if (f.categories[catIdx] && f.categories[catIdx].items[itemIdx]) {
+              if (f.categories && f.categories[catIdx] && f.categories[catIdx].items && f.categories[catIdx].items[itemIdx]) {
                 f.categories[catIdx].items[itemIdx].quantity = val;
                 updateSlipTotals(container, f);
               }
@@ -3241,43 +3292,63 @@
 
             saveState();
 
-            // ONLY sync to mirror if NOT in interleaved mode and editing the primary slip!
+            // Nếu đang ở khổ A5 nhân đôi (không ghép xen kẽ), đồng bộ tức thì sang phiếu bên phải
             if (!isInterleavedMode() && !isRightSlip && appData.printLayoutMode === 'a5-double') {
-              if (mirrorContainer) {
-                mirrorContainer.innerHTML = generateFormHtml(f, true);
+              const mirror = document.getElementById('mirrorFormContainer');
+              if (mirror) {
+                if (isBlur) {
+                  mirror.innerHTML = generateFormHtml(f, true, 'right');
+                } else {
+                  let mirrorTarget = null;
+                  if (type === 'cat-code') {
+                    mirrorTarget = mirror.querySelector(`.cell-editable-text[data-type="cat-code"][data-cat-idx="${catIdx}"]`);
+                  } else if (type === 'cat-name') {
+                    mirrorTarget = mirror.querySelector(`.cell-editable-text[data-type="cat-name"][data-cat-idx="${catIdx}"]`);
+                  } else if (type === 'item-name') {
+                    mirrorTarget = mirror.querySelector(`.cell-editable-text[data-type="item-name"][data-cat-idx="${catIdx}"][data-item-idx="${itemIdx}"]`);
+                  } else if (type === 'item-price') {
+                    mirrorTarget = mirror.querySelector(`.cell-editable-text[data-type="item-price"][data-cat-idx="${catIdx}"][data-item-idx="${itemIdx}"]`);
+                    updateSlipTotals(mirror, f);
+                  } else if (type === 'item-qty') {
+                    mirrorTarget = mirror.querySelector(`.cell-editable-text[data-type="item-qty"][data-cat-idx="${catIdx}"][data-item-idx="${itemIdx}"]`);
+                    updateSlipTotals(mirror, f);
+                  } else if (type === 'school-name') {
+                    mirrorTarget = mirror.querySelector('.school-name-box');
+                  } else if (type === 'main-title') {
+                    mirrorTarget = mirror.querySelector('.main-title');
+                  } else if (type === 'sub-title') {
+                    mirrorTarget = mirror.querySelector('.sub-title');
+                  } else if (type === 'grade-class') {
+                    mirrorTarget = mirror.querySelector('.grade-class');
+                  } else if (type === 'corner-sig') {
+                    mirrorTarget = mirror.querySelector('.corner-sig-text');
+                  } else if (type === 'note') {
+                    mirrorTarget = mirror.querySelector('.phieu-note');
+                  } else if (type === 'sign-date') {
+                    mirrorTarget = mirror.querySelector('.sign-date');
+                  } else if (type === 'sign-title') {
+                    mirrorTarget = mirror.querySelector('.sign-title');
+                  }
+
+                  if (mirrorTarget) {
+                    mirrorTarget.innerText = target.innerText;
+                  }
+                }
               }
             }
+          }
+
+          // Blur: hoàn tất định dạng và lưu
+          container.addEventListener('blur', (e) => {
+            handleFieldUpdate(e.target, true);
           }, true);
 
-          // Event Delegation for input (real-time calculations)
+          // Input: lưu tức thì vào bộ nhớ để khi đổi khổ A4/A5 không bị mất chữ
           container.addEventListener('input', (e) => {
-            const target = e.target;
-            const type = target.getAttribute('data-type');
-            if (type === 'item-qty' || type === 'item-price') {
-              const f = getTargetForm();
-              if (!f) return;
-              const catIdx = parseInt(target.getAttribute('data-cat-idx'), 10);
-              const itemIdx = parseInt(target.getAttribute('data-item-idx'), 10);
-              const val = target.innerText.trim();
-
-              if (f.categories[catIdx] && f.categories[catIdx].items[itemIdx]) {
-                if (type === 'item-qty') {
-                  f.categories[catIdx].items[itemIdx].quantity = val;
-                } else {
-                  f.categories[catIdx].items[itemIdx].price = parseMoney(val);
-                }
-                updateSlipTotals(container, f);
-                saveState();
-
-                // If not interleaved and editing left slip, also update mirror totals
-                if (!isInterleavedMode() && !isRightSlip && mirrorContainer) {
-                  updateSlipTotals(mirrorContainer, f);
-                }
-              }
-            }
+            handleFieldUpdate(e.target, false);
           });
 
-          // Enter key blur
+          // Enter: blur để kết thúc dòng nhập
           container.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
@@ -3304,6 +3375,14 @@
         });
       }
 
+      // Helper lấy form tương ứng với từng phiếu (Trái: getActiveForm, Phải khi ghép xen kẽ: appData.forms[a5RightClassKey])
+      function getFormForSlip(targetSlip = 'left') {
+        if (targetSlip === 'right' && isInterleavedMode()) {
+          return appData.forms[appData.a5RightClassKey];
+        }
+        return getActiveForm();
+      }
+
       // --- EXPOSED APP HANDLERS ---
       window.appHandlers = {
         toggleAutoFit: function () {
@@ -3318,8 +3397,9 @@
           }
         },
 
-        addCategory: function (name = 'DANH MỤC MỚI', code = '') {
-          const form = getActiveForm();
+        addCategory: function (name = 'DANH MỤC MỚI', code = '', targetSlip = 'left') {
+          const form = getFormForSlip(targetSlip);
+          if (!form || !form.categories) return;
           if (!code) {
             const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
             code = romanNumerals[form.categories.length] || `Mục ${form.categories.length + 1}`;
@@ -3339,8 +3419,9 @@
           showToast(`Đã thêm nhóm mới: ${code}`, 'success');
         },
 
-        moveCategory: function (catIdx, delta) {
-          const form = getActiveForm();
+        moveCategory: function (catIdx, delta, targetSlip = 'left') {
+          const form = getFormForSlip(targetSlip);
+          if (!form || !form.categories) return;
           const newIdx = catIdx + delta;
           if (newIdx < 0 || newIdx >= form.categories.length) return;
 
@@ -3352,13 +3433,14 @@
           renderFullUI();
         },
 
-        deleteCategory: function (catIdx) {
-          const form = getActiveForm();
+        deleteCategory: function (catIdx, targetSlip = 'left') {
+          const form = getFormForSlip(targetSlip);
+          if (!form || !form.categories) return;
           if (form.categories.length <= 1) {
             showToast('Mẫu phiếu phải giữ lại ít nhất 1 nhóm sản phẩm!', 'error');
             return;
           }
-          const catName = form.categories[catIdx].name || 'này';
+          const catName = (form.categories[catIdx] && form.categories[catIdx].name) ? form.categories[catIdx].name : 'này';
           if (confirm(`Bạn có chắc muốn xóa toàn bộ nhóm "${catName}" không?`)) {
             form.categories.splice(catIdx, 1);
             saveState();
@@ -3367,9 +3449,9 @@
           }
         },
 
-        addItemToCat: function (catIdx) {
-          const form = getActiveForm();
-          if (!form.categories[catIdx]) return;
+        addItemToCat: function (catIdx, targetSlip = 'left') {
+          const form = getFormForSlip(targetSlip);
+          if (!form || !form.categories || !form.categories[catIdx]) return;
 
           form.categories[catIdx].items.push({
             id: generateId('item'),
@@ -3383,9 +3465,9 @@
           showToast('Đã thêm 1 dòng sách mới', 'success');
         },
 
-        insertItemBelow: function (catIdx, itemIdx) {
-          const form = getActiveForm();
-          if (!form.categories[catIdx]) return;
+        insertItemBelow: function (catIdx, itemIdx, targetSlip = 'left') {
+          const form = getFormForSlip(targetSlip);
+          if (!form || !form.categories || !form.categories[catIdx] || !form.categories[catIdx].items) return;
 
           form.categories[catIdx].items.splice(itemIdx + 1, 0, {
             id: generateId('item'),
@@ -3398,8 +3480,9 @@
           renderFullUI();
         },
 
-        moveItem: function (catIdx, itemIdx, delta) {
-          const form = getActiveForm();
+        moveItem: function (catIdx, itemIdx, delta, targetSlip = 'left') {
+          const form = getFormForSlip(targetSlip);
+          if (!form || !form.categories || !form.categories[catIdx] || !form.categories[catIdx].items) return;
           const items = form.categories[catIdx].items;
           const newIdx = itemIdx + delta;
           if (newIdx < 0 || newIdx >= items.length) return;
@@ -3412,8 +3495,9 @@
           renderFullUI();
         },
 
-        deleteItem: function (catIdx, itemIdx) {
-          const form = getActiveForm();
+        deleteItem: function (catIdx, itemIdx, targetSlip = 'left') {
+          const form = getFormForSlip(targetSlip);
+          if (!form || !form.categories || !form.categories[catIdx] || !form.categories[catIdx].items) return;
           form.categories[catIdx].items.splice(itemIdx, 1);
           saveState();
           renderFullUI();
@@ -3664,32 +3748,21 @@
         if (btnFloatingFillQty1) {
           btnFloatingFillQty1.addEventListener('click', () => {
             const form = getActiveForm();
+
+            // 1. Tự động chuyển chế độ in cột số lượng sang 'as-is' nếu đang ở 'blank' (phiếu trắng)
+            // để người dùng nhìn thấy số 1 ngay lập tức trên màn hình và khi in!
+            if (form.quantityPrintMode === 'blank') {
+              form.quantityPrintMode = 'as-is';
+              if (quantityPrintMode) quantityPrintMode.value = 'as-is';
+            }
+
             let filledCount = 0;
             let preservedCount = 0;
 
-            form.categories.forEach(cat => {
-              if (cat.items) {
-                cat.items.forEach(item => {
-                  const qStr = item.quantity !== undefined && item.quantity !== null ? String(item.quantity).trim() : '';
-                  if (qStr === '' || qStr === '0') {
-                    item.quantity = '1';
-                    filledCount++;
-                  } else {
-                    preservedCount++;
-                  }
-                });
-              }
-            });
-
-            // Nếu đang ghép xen kẽ A5, cũng điền cho phiếu bên phải
-            const isInterleaved = appData.printLayoutMode === 'a5-double' &&
-                                  appData.a5RightClassKey &&
-                                  appData.a5RightClassKey !== 'same' &&
-                                  appData.a5RightClassKey !== appData.activeClassKey &&
-                                  appData.forms[appData.a5RightClassKey];
-            if (isInterleaved) {
-              const rightForm = appData.forms[appData.a5RightClassKey];
-              rightForm.categories.forEach(cat => {
+            function fillFormBlanks(targetForm) {
+              if (!targetForm || !targetForm.categories) return;
+              targetForm.quantityPrintMode = 'as-is';
+              targetForm.categories.forEach(cat => {
                 if (cat.items) {
                   cat.items.forEach(item => {
                     const qStr = item.quantity !== undefined && item.quantity !== null ? String(item.quantity).trim() : '';
@@ -3704,14 +3777,43 @@
               });
             }
 
-            if (filledCount > 0) {
-              saveState();
-              renderSheet();
-              setupInlineEditing();
-              showToast(`⚡ Đã tự động điền 1 vào ${filledCount} ô sách còn trống! (Giữ nguyên ${preservedCount} ô đã có số)`, 'success');
-            } else {
-              showToast(`Tất cả các dòng sách đều đã có số lượng.`, 'info');
+            fillFormBlanks(form);
+
+            // Nếu đang ghép xen kẽ A5, cũng điền cho phiếu bên phải
+            const isInterleaved = isInterleavedMode();
+            if (isInterleaved) {
+              const rightForm = appData.forms[appData.a5RightClassKey];
+              fillFormBlanks(rightForm);
             }
+
+            // Nếu tất cả các dòng đều đã có số lượng (filledCount === 0):
+            // Người dùng bấm nút với mong muốn điền số 1 vào toàn bộ dòng sách!
+            if (filledCount === 0) {
+              function setAllToOne(targetForm) {
+                if (!targetForm || !targetForm.categories) return;
+                targetForm.quantityPrintMode = 'as-is';
+                targetForm.categories.forEach(cat => {
+                  if (cat.items) {
+                    cat.items.forEach(item => {
+                      item.quantity = '1';
+                      filledCount++;
+                    });
+                  }
+                });
+              }
+              setAllToOne(form);
+              if (isInterleaved) {
+                setAllToOne(appData.forms[appData.a5RightClassKey]);
+              }
+              saveState();
+              renderFullUI();
+              showToast(`⚡ Đã đặt số lượng tất cả ${filledCount} dòng sách thành 1!`, 'success');
+              return;
+            }
+
+            saveState();
+            renderFullUI();
+            showToast(`⚡ Đã tự động điền 1 vào ${filledCount} ô sách còn trống! (Giữ nguyên ${preservedCount} ô đã có số)`, 'success');
           });
         }
 
@@ -3830,6 +3932,9 @@
 
         // 5. Layout Mode: A4 Single vs A5 Double on A4 (Đồng bộ giữa Header và Thanh bên phải)
         function handleLayoutModeChange(val) {
+          if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+          }
           appData.printLayoutMode = val;
           if (printLayoutModeSelect) printLayoutModeSelect.value = val;
           if (headerLayoutModeSelect) headerLayoutModeSelect.value = val;

@@ -96,6 +96,26 @@
   - Tối ưu mật độ in ấn khổ A5 (giảm đệm dòng, co nhỏ tiêu đề vừa vặn) đảm bảo cả 2 nửa phiếu (kể cả những khối lớp dài 18 sách như Lớp 9) đều nằm trọn vẹn 100% trong đúng 1 trang giấy duy nhất.
 - **Tự động gắn đúng tên lớp cho Signature góc phải**: Hệ thống kiểm tra và tự động sửa các lỗi gán nhầm tên lớp (ví dụ: mở Lớp 8 thì luôn hiển thị chính xác `VPP Thanh Tâm - Lớp 8`, không bị vướng nhầm `Lớp 9`).
 
+### 16. ⚡ Nâng Cấp Toàn Diện: Định Tuyến Độc Lập Phiếu Phải, Đồng Bộ Nhân Đôi & Chống Che Ô Nhập
+- **Định tuyến độc lập thao tác thêm/xóa trên phiếu bên phải (`Target Slip Routing`)**:
+  - Truyền định danh phiếu mục tiêu (`left` hoặc `right`) vào toàn bộ hàm xử lý dòng sách và danh mục (`deleteItem`, `insertItemBelow`, `addItemToCat`, `deleteCategory`, `moveItem`, `moveCategory`).
+  - Khi ghép xen kẽ A5, mọi thao tác thêm/xóa dòng ở phiếu bên phải chỉ tác động chính xác vào dữ liệu của lớp bên phải (`appData.forms[appData.a5RightClassKey]`), **tuyệt đối không làm thay đổi hay xóa nhầm dòng sách/tên trường ở phiếu bên trái**.
+- **Đồng bộ nhân đôi A5 tức thì & bảo lưu văn bản đã xóa (`Real-time Mirror Sync & Cleared Text Preservation`)**:
+  - Thay thế logic fallback `|| 'TRƯỜNG TIỂU HỌC...'` bằng kiểm tra nghiêm ngặt `!== undefined ? form.val : default`. Khi người dùng chủ động xóa trống tên trường hoặc tiêu đề, hệ thống tôn trọng giá trị rỗng chứ không tự ý điền lại chữ mặc định.
+  - Khi gõ hoặc xóa bất kỳ ký tự nào trên phiếu bên trái ở chế độ nhân đôi A5, nửa bên phải lập tức cập nhật tương ứng theo thời gian thực (Real-time DOM sync trên sự kiện `input` và `blur`).
+  - Xóa dòng sách bên trái ở chế độ nhân đôi sẽ đồng thời xóa ngay lập tức trên cả phiếu bên phải.
+- **Nút "⚡ Điền 1 ô trống" hoạt động chính xác & không spam thông báo**:
+  - Tự động nhận diện và chuyển `Chế độ in cột "Số lượng"` từ `Phiếu trắng` sang `Đúng số lượng` (`as-is`), đảm bảo số 1 hiển thị ngay lập tức lên bảng sách cho người dùng thấy.
+  - Tự động điền số 1 vào toàn bộ các ô đang để trống hoặc số 0, giữ nguyên tuyệt đối các ô đã có số khác.
+  - Nếu tất cả các ô đều đã có số (ví dụ từ trước), bấm nút sẽ tự động chuyển toàn bộ về số 1 theo đúng mong muốn của người dùng thay vì báo lỗi.
+  - Bổ sung cơ chế giới hạn tối đa 3 thông báo cùng lúc để không làm che khuất màn hình.
+- **Bảo toàn nguyên vẹn 100% văn bản khi chuyển đổi qua lại giữa Khổ A4 và Khổ A5**:
+  - Bắt sự kiện `input` lưu dữ liệu tức thì cho tất cả các trường văn bản (`school-name`, `main-title`, `sub-title`, `grade-class`, `note`, `sign-date`, `sign-title`, `cat-name`, `item-name`).
+  - Tự động kích hoạt `blur()` để chốt dữ liệu đang nhập dở trước khi đổi layout hoặc chuyển lớp, ngăn chặn hoàn toàn tình trạng bị reset về dữ liệu ban đầu.
+- **Thanh thao tác nổi (`+`, `^`, `v`, `🗑️`) không còn che khuất ô nhập ĐƠN GIÁ và SL**:
+  - Đưa thanh thao tác nổi về phía bên trái của ô Tên sách (`left: 4px; right: auto;`, trong A5 là `left: 2px !important;`), hoàn toàn cách xa khu vực nhập số ở bên phải.
+  - Ứng dụng CSS selector hiện đại `:has(td.col-price:hover)`, `:has(td.col-qty:hover)`, `:has(td.col-price:focus-within)`, `:has(td.col-qty:focus-within)` để **tự động ẩn hoàn toàn thanh thao tác khi người dùng rê chuột hoặc nhập số vào ô ĐƠN GIÁ, SL hoặc THÀNH TIỀN**. Mọi thao tác nhập số liệu diễn ra hoàn toàn thông thoáng, mượt mà.
+
 ---
 
 ## 🚀 Hướng Dẫn Deploy Lên GitHub Pages (30 Giây)
